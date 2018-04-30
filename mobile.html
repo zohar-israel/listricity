@@ -1,0 +1,1388 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <link href="mobile.css" rel="stylesheet">
+
+    <script src="conn.js"></script>
+    <script src="logic.js"></script>
+    <script src="player.js"></script>
+
+    <style>
+        .boxmood {
+  text-shadow: 0 1px 1px #aaa;
+  float:right;
+  vertical-align:bottom;
+  /* display:inline-block; */
+  position:relative;
+  right:0;
+  font-size:40px;
+  width: auto!important;
+  float: none!important;
+  clear: both;
+  text-align: right;
+}
+
+
+.boxmood:before{
+    background-image:url(note1.png);
+  background-repeat:no-repeat;
+    background-size:contain;
+content:"";
+  position:absolute;
+  background-position:90% 0px;
+  left:-78px;
+  top:0px;
+  width:100%;
+  height:100%;
+  max-width:150px;
+  z-index:-1;
+    transition:left .3s,opacity 2s;
+}
+.boxmood>.boxmood:before{
+  background-position:45% 0px;
+  left:-38px;
+    background-image:url(note2.png);
+}
+.boxmood>.boxmood>.boxmood:before{
+    background-image:url(note3.png);
+}
+.boxmood>.boxmood>.boxmood>.boxmood:before{
+    background-image:url(note1.png);
+}
+.boxmood {
+    opacity: .99999;
+    font-size: 30px;
+    padding: 10px;
+    line-height: 75px;
+    padding-left: 80px;
+    position: relative;
+    margin: 5px auto;
+    border: 0px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+    max-height: 78px;
+    overflow: hidden;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #565656), color-stop(100%, #2a2a2a));
+    background: -moz-linear-gradient(center top, #565656 0%, #2a2a2a 100%);
+    -moz-border-radius: 5px;
+    border-color: #000000;
+    border-width: 1px;
+    border-style: solid;
+    font-family: Arial;
+    cursor: pointer;
+    text-shadow: -1px -1px 2px rgba(0, 0, 0, 0.14), 0 0 0 rgba(51, 51, 51, 0.41), -1px -1px 2px rgba(0, 0, 0, 0.26);
+    color: rgb(101, 101, 101);
+    padding-bottom: 0;
+}
+
+
+
+.moodtitle:after {
+content: "";
+    display: inline-block;
+    margin-top: -4px;
+    margin-bottom: -12px;
+    margin-left: 4px;
+    background-size: 20px;
+    height: 32px;
+    background-position: center 5px;
+    background-repeat: no-repeat;
+    -webkit-filter: brightness(2) grayscale(1) drop-shadow(-1px -1px 1px black);
+}
+    
+.moodtitlep_waking_up:after {
+    width:32px;
+    background-image: url(/icons/Icons140_140_0045_sun.png);
+}
+    
+.moodtitlep_feeling_good:after {
+    width:32px;
+    background-image:url(/icons/Icons140_140_0044_sun.png);
+}
+    
+.moodtitlep_party:after {
+    width:32px;
+    background-image:url(/icons/Icons140_140_0013_Ellipse_1.png);
+}
+.moodtitlep_energetic:after {
+    width:32px;
+    background-image:url(/icons/Icons140_140_0021_Rectangle_4.png?);
+}
+.moodtitlep_sad:after {
+    width:32px;
+    background-image:url(/icons/Icons140_140_0032_Shape_52.png);
+}
+.moodtitlep_sensual:after {
+    width:32px;
+    background-image:url(/icons/Icons140_140_0035_Ellipse_2.png);
+}
+.moodtitlep_driving:after {
+    width:32px;
+    background-image:url(/icons/Icons140_140_0000_Ellipse_7.png);
+}
+.moodtitlep_eating_with_friends:after {
+    width:32px;
+    background-image:url(/icons/Icons140_140_0040_Shape_12.png);
+}
+.moodtitlep_studying:after {
+    width:32px;
+    background-image:url(/icons/Icons140_140_0037_Shape_14.png);
+}
+    
+
+
+.boxmood[mood="Feeling_good"]:before {
+    background-image:url(/icons/Icons140_140_0044_sun.png);
+    background-position:80px 0px;
+    background-size:contain;
+    min-width:300px!important;
+    max-height:200px!important;
+}
+
+.boxmood[mood="Party"]:before {
+    background-image:url(/icons/Icons140_140_0013_Ellipse_1.png);
+    background-position:80px 0px;
+    background-size:contain;
+    min-width:200px!important;
+    max-height:130px!important;
+}
+
+.boxmood[mood="Waking_Up"]:before {
+    background-image:url(/icons/Icons140_140_0045_sun.png);
+    background-position:80px 0px;
+    background-size:contain;
+    min-width: 200px!important;
+    transition: height .3s;
+
+}
+
+.boxmood[mood="Energetic"]:before {
+    background-image:url(/icons/Icons140_140_0021_Rectangle_4.png?);
+    background-position:80px 0px;
+    background-size:contain;
+    min-width:300px!important;
+    max-height:230px!important;
+}
+
+.boxmood[mood="Sad"]:before {
+    background-image:url(/icons/Icons140_140_0032_Shape_52.png);
+    background-position:80px 0px;
+    background-size:contain;
+    min-width:300px!important;
+    nmax-height:90px!important;
+    nmax-width:90px!important;
+}
+
+.boxmood[mood="Sensual"]:before {
+    background-image:url(/icons/Icons140_140_0035_Ellipse_2.png);
+    background-position:80px 0px;
+    background-size:contain;
+    min-width:200px!important;
+    max-height:130px!important;
+}
+
+.boxmood[mood="Driving"]:before {
+    background-image:url(/icons/Icons140_140_0000_Ellipse_7.png);
+    background-position:80px 0px;
+    background-size:contain;
+    min-width:230px!important;
+    max-height:130px!important;
+}
+
+.boxmood[mood="Eating_with_friends"]:before {
+    background-image:url(/icons/Icons140_140_0040_Shape_12.png);
+    background-position:80px 0px;
+    background-size:contain;
+    min-width:230px!important;
+    max-height:130px!important;
+}
+
+.boxmood[mood="Studying"]:before {
+    background-image:url(/icons/Icons140_140_0037_Shape_14.png);
+    background-position:80px 0px;
+    background-size:contain;
+    min-width:230px!important;
+    max-height:130px!important;
+}
+
+
+.mainMoodBox>.boxmood:before {
+    -webkit-filter:brightness(.5) grayscale(.1) invert(1);
+    -webkit-filter:drop-shadow(0px 0px 2px #000) brightness(4.5) grayscale(.1) invert(1);
+        max-height: 130px!important;
+    margin-left: 10px;
+}
+
+.info {
+position: absolute;
+    height: 100%;
+    background-color: #301E42;
+    box-shadow: inset 0 5px 10px -6px;
+    padding: 0px;
+    color: #aaa;
+    font-weight: 100;
+    nfont-size: 11px;
+    nline-height: 1.7;
+    npadding-right: 10px;
+    ntext-shadow: 1px 1px 1px #111, 0px 0px 0px rgba(68, 67, 67, 0.08),1px 1px 1px #111;
+    display:none;
+    width:100%;
+}
+.info>span {
+    background: #777;
+    /* padding: 0 2px; */
+    border-radius: 10px;
+    text-align: center;
+    width: 16px;
+    display: inline-block;
+    height: 16px;
+    color: #301E42;
+    text-shadow: none;
+    font-weight: 700;
+}
+#stage{
+                top: 10vh;
+    position: fixed;
+    left: 0;
+        }
+
+        
+        #stage,
+        #queue {
+            white-space: nowrap;
+            overflow: scroll;
+            right: 0vw;
+            height: 75vh;
+            background-color:#1D1623;
+                padding-bottom: 50vh;
+    box-sizing: border-box;
+      overflow-y: scroll; /* has to be scroll, not auto */
+  -webkit-overflow-scrolling: touch;
+  overflow-x:hidden;
+        }
+        #listsstage{
+            white-space: nowrap;
+            overflow: scroll;
+            right: 0vw;
+            background-color:#1D1623;
+                padding-bottom: 40vh;
+    box-sizing: border-box;
+        height: 85vh;
+                padding-top: 62px;
+  overflow-y: scroll; /* has to be scroll, not auto */
+  -webkit-overflow-scrolling: touch;
+  overflow-x:hidden;
+        }
+       
+.hilightlist0 {
+    box-shadow: inset 0 0 0 100px rgba(34, 62, 123, 0.45);
+}        
+        .vidui img {
+            max-width: 30vw;
+            min-width: 30vw;
+            margin: 1px;
+            border-radius: 2px;
+            margin-right: 10px;
+            nmax-height: 90px;
+        }
+        
+        .vidui {
+               position: relative;
+    margin: 3px;
+    border-radius: 3px;
+    
+    
+        }
+        span.vidtimeui {
+            position: absolute;
+            bottom: 3px;
+            background-color: #aaa;
+            padding: 1px 3px;
+            right: 5px;
+            border-radius: 3px;
+                font-size: 10px;
+        }
+        
+        ul {
+            list-style: none;
+            height: 75vh;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        
+        li {
+            list-style: none;
+            height: 7.5vh;
+            min-height:2em;
+            padding: 5px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        
+        .pcontainer {
+            width: 100vw;
+            height: 85vh;
+            border-bottom: 1px solid #777;
+            background-color: #999;
+            display: block;
+            position: fixed;
+            box-sizing: border-box;
+        }
+        
+        #bottomtools {
+            width: 100vw;
+            height: 15vh;
+            bottom: 0;
+            background-color: #222;
+            display: block;
+            position: fixed;
+            border-top: 1px solid #555;
+        }
+        
+        .seconderytool:last-child,
+        .bottomtool:last-child {
+            border-right: none;
+        }
+        
+        .bottomtool {
+                color: #908F8F;
+            box-sizing: border-box;
+            width: 33.3vw;
+            height: 100%;
+            border-right: 1px solid #777;
+            bottom: 0;
+            background-color: #111;
+            display: block;
+            nposition: absolute;
+            float: left;
+            text-align: center;
+            color: #555;
+            line-height: 15vh;
+            box-shadow: inset 0 10px 7px -6px;
+}
+
+
+
+
+        
+        
+        #q {
+            width: 100%;
+            border: none;
+            padding: .4em 0;
+            margin: 10px;
+            display: block;
+            background: transparent none;
+            outline: 0 !important;
+            -webkit-appearance: none;
+            background-image: none;
+            padding: .4em 1.5em;
+            margin: .5em 0;
+            nmin-height: 1.4em;
+            line-height: 1.4em;
+            font-size: 16px;
+            height: 10vh;
+            top: 0;
+            margin: 0;
+            nbox-shadow: 0px 0px 10px #222;
+            border-bottom: 1px solid #111;
+        }
+        
+        .insetpoint {
+            display: none;
+        }
+        
+        #findcontainer2 {
+            content: "";
+            position: absolute;
+            width: 98vw;
+            height: 9vh;
+            background-color: white;
+            display: block;
+            border-radius: 10vh;
+            
+            margin: 1vw;
+            border: 1px solid #333;
+            box-shadow: inset -2px 3px 18px -6px #111;
+        }
+        #findcontainer1 {
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #565656), color-stop(100%, #2a2a2a));
+    height: 11vh;
+    box-shadow: 0px 1px 2px -1px rgba(255, 255, 255, 0.58);
+    z-index: 99999;
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
+        }
+        #lists,
+        #list,
+        #video {
+            display: none;
+        }
+        
+        .selected,
+        .seconderytools
+        {
+            z-index: 9;
+            background-color: #444343;
+            color: #928F8F;
+                
+        }
+        
+        .seconderytool {
+                color: #908F8F;
+            text-align: center;
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #565656), color-stop(100%, #2a2a2a));
+                box-shadow: inset 0 4px 7px -4px, 0 3px 5px black;
+        }
+        .title{
+            line-height: 1.75;
+                font-weight: 100;
+        }
+        @media all and (orientation:portrait) {
+            
+    .title{
+            max-width: 50vw;
+    max-height: 90px;
+        
+    }    
+            
+            .seconderytools {
+                right: 0px;
+                bottom: 15vh;
+                position: fixed;
+                left: 0vh;
+                height: 15vw;
+            }
+            .seconderytool {
+                height: 15vw;
+                float: left;
+                width: 25%;
+                border-right: 1px solid #777;
+                border-top: 1px solid rgba(119, 119, 119, 0.48);
+                box-sizing: border-box;
+                line-height: 10vh;
+            }
+            .listtool {
+                width: 25%;
+            }
+            
+            #stage {
+                height: 68vh;
+            }
+            
+            
+        }
+        .findtool.current{
+    background-color: #85BF6E;
+    color: #FFFFFF;            
+        }
+        @media all and (orientation:landscape) {
+    .title{
+            max-width: 50vw;
+    max-height: 90px;
+    }    
+    .vidui img {
+    max-width: 20vw;
+    min-width: 20vw;
+}        
+            .seconderytools,
+            .selected.seconderytools{
+                background-color: #111;
+                color: #555;
+            }
+            .seconderytools {
+                right: 0px;
+                bottom: 15vh;
+                position: fixed;
+                top: 10vh;
+                width: 10vw;
+            }
+            .seconderytool {
+                height: 25%;
+                border-bottom: 1px solid #777;
+                border-left: 1px solid rgba(119, 119, 119, 0.48);
+                line-height: 15vh;
+            }
+            #listtools{top:0;}
+            .listtool {
+                height: 25%;
+                line-height:20vh;
+            }
+            #queue,
+            #stage {
+                width: 90vw;
+            }
+ #queue {
+            height: 85vh;
+        }            
+.info {
+    box-shadow: inset 5px 0 10px -6px;
+    line-height: 1.4;
+    padding-left: 0px;
+    text-align: right;
+    padding-right: 0px;
+    right: 0;
+}
+.info>span {
+    margin-left: -12px;
+    float: left;
+}
+}            
+        
+        
+        
+        ul#ui-id-1 {
+    left: 0px!important;
+    border: none;
+    border-bottom: 1px solid #555;
+    position: fixed!important;
+    bottom: 15vh;
+    top: 11vh!important;
+    overflow: scroll;
+    right:0;
+}
+#listtools .info{
+    display:none;
+}
+.initial:before {
+    content: "Click the 'Find' button to get rolling... ";
+    font-size: 7vh;
+    padding: 40px;
+    display: inline-block;
+    bottom: 0;
+    position: absolute;
+    background-color: #BD7100;
+    npadding-top: 100vh;
+    ntext-align: right;
+    z-index: -1;
+    padding-right: 40vw;
+        top: 0;
+}
+#arrow {
+background-image: url(arrleft.png);
+    background-size: cover;
+    width: 27vw;
+    height: 13vw;
+    display: block;
+    position: absolute;
+    right: 38px;
+    bottom: 20px;
+    transform: rotate(217deg);
+    z-index: -1;
+}
+.hilight0{
+        box-shadow: inset 0px 10px 100px -10px #C1C1C1,inset 0 0 0px 500px #4CAF50!important;
+}
+.hilight2{
+        box-shadow: inset 0px 10px 100px -10px #C1C1C1,inset 0 0 0px 500px #fCAF50!important;
+}
+.hilight4{
+        box-shadow: inset 0px 10px 100px -10px #C1C1C1,inset 0 0 0px 500px #fC4F50!important;
+}
+
+.singlelist {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #565656), color-stop(100%, #2a2a2a));
+    margin: 4px;
+    padding: 14px;
+    border-radius: 3px;
+    color: #999;
+        height: 64px;
+}
+.singlelist span {
+    display: inline-block;
+    position: relative;
+    background-color: #000;
+    padding: 10;
+    margin: 9px 0px 0px 10px;
+    border-radius: 4px;
+    float: right;
+        box-shadow: 0 0 10px -4px;
+}
+.newlist{
+    display: inline-block;
+    position: relative;
+    background-color: #454545;
+    padding: 10;
+    margin: 9px 4px 0px 4px;
+    border-radius: 4px;
+    float: right;
+    color: #949494;
+    box-shadow: 0 0 19px -6px;
+}
+#playlistsheader{
+    width: 100%;
+    height: 60px;
+    position: fixed;
+    top: 0;
+    background-color: #111111;
+    box-shadow: inset 0 -10px 7px -6px rgba(84, 84, 84, 0.46);    
+}
+.ui-dialog-titlebar-close {
+    float: right;
+}
+div#dialog {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+}
+.ui-dialog {
+    border: none;
+    padding: 1px;
+    box-shadow: inset 0 0 2px 0px #fff,0 0 100px 500px #201221;
+    border-radius: 3px;
+    line-height: 2;
+}
+
+.listtitle {
+color: #999;
+    font-size: 30px;
+    padding: 4px;
+    height: 33px;
+    width: 100%;
+    top: 0;
+    background-color: #111111;
+    box-shadow: inset 0 -10px 7px -6px rgba(84, 84, 84, 0.46);
+    font-weight: 100;
+    text-align: center;
+    line-height: 33px;
+        box-shadow: inset 0 -5px 5px -3px #777,inset 0 4px 5px -3px #777;
+    border-bottom: 1px solid black;
+        text-shadow: 0px 0px 1px #2F2F2F,0px 0px 0px rgba(0,0,0,0),0px 0px 1px #C1C1C1;
+}
+.playing {
+        box-shadow: inset 0 0 0 500px rgba(33, 150, 243, 0.44);
+}
+    </style>
+    <script>
+        (function(i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r;
+            i[r] = i[r] || function() {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+            a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+            a.async = 1;
+            a.src = g;
+            m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-74159004-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+    
+</head>
+
+<body>
+
+    <div id="video" class="pcontainer">
+        <div id="logo" class="initial"><span id="arrow"></span>
+            <div id="logo_inner" style="width:100%;height:100%;"></div>
+        </div>
+        <div id="initvideo" style="display:none;position:fixed;top:0;left:0;width:100%;    background-color: #222;
+    display: block;
+    position: fixed;
+    border-bottom: 1px solid #555;
+    line-height: 5vh;
+    box-shadow: inset 0 -10px 7px -6px #4c4c4c;
+    color: #928F8F;
+    text-align: center;
+    padding: 3vh 0;"><b>Click Play to get started</b><br/><i>(only required once)</i></div>
+    </div>
+    <div id="list" class="pcontainer">
+        <div id="listtools" class="seconderytools">
+            <div class="info"><!--You really have to try this using your PC... save multiple lists, arrange and mix lists, and much more.--> </div>
+            <div class="listtool seconderytool" onclick="saveList()">
+                Save
+            </div>
+            <div class="listtool seconderytool" onclick="$('#queue').children().remove();">
+                Clear
+            </div>
+            <div class="listtool seconderytool" onclick="deleteVid($('#list .hilight')[0].id, false);setTimeout(hilight, 500);">
+                Delete
+            </div>
+            <div class="listtool seconderytool" onclick="showLists()">
+                Lists
+            </div>
+        </div>
+        <div class="listtitle"></div>
+        <div id="queue"></div>
+    </div>
+    <div id="find" class="pcontainer">
+        <div id="findcontainer1">
+        <div id="findcontainer2">
+        <input id="q">
+        </div></div>
+        <div id="findtools" class="seconderytools">
+            <div class="info">
+            <!--<span>1</span> Start a search or browse generes <span>2</span> Mark the tracks you love (or&nbsp;hate) <span>3</span> Lean back and relax-->
+                <div class="findtool seconderytool current" onclick="$('.current').removeClass('current');$(this).addClass('current');showMoods()">
+                    Moods
+                </div>
+                <div class="findtool seconderytool" onclick="$('.current').removeClass('current');$(this).addClass('current');showGenres()">
+                    Genres
+                </div>
+                <div class="findtool seconderytool" onclick="$('.current').removeClass('current'); $(this).addClass('current'); showLists()">
+                    Lists
+                </div>
+                <div class="findtool seconderytool" onclick="$('.current').removeClass('current'); $(this).addClass('current');showScenes()">
+                    Scene
+                </div>
+
+            </div>
+            <div class="findtool seconderytool current" onclick="window.lastrateing=0;$('.current').removeClass('current');$(this).addClass('current');clickedOpinion();">
+                Love
+            </div>
+            <div class="findtool seconderytool" onclick="window.lastrateing=2;$('.current').removeClass('current');$(this).addClass('current');clickedOpinion();">
+                OK
+            </div>
+            <div class="findtool seconderytool" onclick="window.lastrateing=4;$('.current').removeClass('current');$(this).addClass('current');clickedOpinion();">
+                Yikes
+            </div>
+            <div class="findtool seconderytool" onclick="setup();">
+                Home
+            </div>
+        </div>
+
+        <div id="stage">
+
+        </div>
+    </div>
+    <div id="lists" class="pcontainer">
+        <div id="listsstage">
+
+        </div>
+        
+    </div>
+    <div id="bottomtools">
+        <div id="buttonvideo" class="bottomtool" onclick="tabvideo()">
+            Video
+        </div>
+        <div id="buttonlist" class="bottomtool" onclick="tablist()">
+            Playlist
+        </div>
+        <div id="buttonfind" class="bottomtool selected" onclick="tabfind()">
+            Find
+        </div>
+    </div>
+    <div id="dialog" title="" style="display:none">
+        <div>
+            <label>Playlist name:</label>
+            <input id="name" name="name" type="text" style="width:90%;">
+        </div>
+    </div>
+
+    <script>
+    function showLists(){
+            $('#listsstage').children().remove();
+            $('#lists').fadeIn();
+            for (var i = 0; i < playlists.lists.length; i++) {
+                var l = playlists.lists[i];
+                var tools='<div><span onclick="deleteList('+i+')">Delete</span><span onclick="openList('+i+')">Open</span></div>';
+                $('#listsstage').append($('<div id="list_'+ i+'" class="singlelist">'+l.title +tools+'</div>'));
+                
+            }
+            $('#listsstage').append($('<div id="playlistsheader"><span class="newlist" onclick="newList()">New list</span><span class="newlist" onclick="$(\'#lists\').fadeOut();">Close</span></div>'));
+            $('#list_'+curlistind).addClass('hilightlist0');
+        
+    }
+                function deleteList(ind) {
+                if (playlists.lists.length > 1) {
+                    playlists.lists.splice(ind, 1);
+                    
+                    $('#list_' + curlistind + '').remove();
+                    saveList(true);
+                    curlistind = Math.max(0, ind - 1);
+                    showLists();
+
+                    
+                }
+            }
+function openList(ind){
+    tablist();
+    curlistind = ind;
+                layoutCurList();
+                saveList(true);    
+                $('#lists').fadeOut();
+}
+
+
+            function newList() {
+                $("#name").val('')
+                $("#dialog").dialog({
+                    autoOpen: true,
+                    modal: false,
+                    resizable: false,
+                    title: 'New playlist name...',
+                    buttons: {
+                        Ok: function() {
+                            var name = $("#name").val();
+                            if (name.length > 0) {
+                                playlists.lists.push({
+                                    title: name,
+                                    vids: []
+                                });
+                                curlistind = playlists.lists.length - 1;
+                                $('#queue .vidui').remove();
+                                saveList();
+                                var l = playlists.lists[curlistind];
+                var tools='<div><span onclick="deleteList('+curlistind+')">Delete</span><span onclick="openList('+curlistind+')">Open</span></div>';
+                $('#listsstage').prepend($('<div id="list_'+ curlistind+'" class="singlelist">'+l.title +tools+'</div>'));
+
+                            }
+                            $(this).dialog('close');
+                        }
+                    }
+                });
+            }
+
+
+
+    window.lastrateing=0;
+    function clickedOpinion(){
+        $('.hilight').click();
+        setTimeout(hilight, 500);
+    }
+        var lastsearchtime = new Date();
+
+        function tabvideo() {
+            perspective = 'video';
+            $('.selected').removeClass('selected');
+            $('#video').show();
+            $('#list').hide();
+            $('#find').hide();
+            $('#lists').fadeOut();
+            $('#buttonvideo').addClass('selected')
+            hilight();
+        }
+
+        function tablist() {
+            perspective = 'results';
+            $('#findtools .info').hide();
+            if ($('#queue .vidui').length == 0) { };
+            $('.selected').removeClass('selected');
+            $('#video').hide();
+            $('#list').show();
+            $('#find').hide();
+            $('#lists').fadeOut();
+            $('#buttonlist').addClass('selected')
+            hilight();
+        }
+
+        function tabfind() {
+            $('#findtools .info').show();
+            perspective = 'genres';
+
+            if ($('#stage .vidui').length==0) setup();
+            $('.selected').removeClass('selected');
+            $('#video').hide();
+            $('#list').hide();
+            $('#find').show();
+            $('#lists').fadeOut();
+            $('#buttonfind').addClass('selected');
+            hilight();
+            //setup();
+        }
+
+        function progress() {}
+
+        function addInfo() {}
+
+        $(document).ready(function() {
+            detect_autoplay(100);
+            (function(a){a.expr[":"].onScreen=function(b){var c=a(window),d=c.scrollTop()+30,e=c.height(),f=d+e,g=a(b),h=g.offset().top,i=g.height(),j=h+i;return h>=d&&h<f||j>d&&j<=f||i>e&&h<=d&&j>=f}})(jQuery);
+
+            $("#q").autocomplete({
+                    source: function(request, response) {
+                        autocomplete(request.term, response);
+                    },
+                    minLength: 1,
+                    select: function(event, ui) {
+                        if (new Date() - lastsearchtime < 500) return;
+                        lastsearchtime = new Date();
+                        event.preventDefault();
+                        if (ui.item) {
+                            $('#stage').children().remove();
+                            $('#q').val(ui.item.value);
+                            dosearch(ui.item.value);
+                        }
+                        return false;
+
+                    }
+                })
+                .keydown(function(event) {
+                    if (event.keyCode == 13) {
+                        if ($("#q").val().length > 0) {
+                            showSuggestionsPanel();
+                            if (new Date() - lastsearchtime < 500) return;
+                            $('.ui-autocomplete').hide();
+                            $(".ui-menu-item").hide();
+                            lastsearchtime = new Date();
+                            $('#stage').children().remove();
+                            dosearch($("#q").val());
+                            event.preventDefault();
+                            return false;
+                        }
+                    }
+                });;
+                
+                
+                
+        layoutCurList();
+        setup(true);
+                
+        });
+
+
+
+        var hdrs = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36',
+            'accept-language': 'en-US,en;q=0.8,he;q=0.6',
+            'pragma': 'no-cache',
+            'upgrade-insecure-requests': '1',
+            'cache-control': 'no-cache',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        }
+
+        function autocomplete(s, response) {
+            req.get({
+                url: "https://clients1.google.com/complete/search?client=youtube&hl=en&gl=il&gs_rn=23&gs_ri=youtube&ds=yt&cp=5&gs_id=i&q=" + encodeURI(s) + "&callback=google.sbox.p50&gs_gbg=1Qz332c1O53rEdE7l74N",
+                headers: hdrs
+            }, function(err, resp, body) {
+                if (err) {
+                    console.log('ERR: ' + err);
+                    return;
+                }
+
+                var r = [];
+                if (body && body.split('[[').length > 0) {
+                    body = '[[' + body.split('[[')[1].split(']],{')[0] + ']]';
+                    body = eval(body);
+                    for (var i = 0; i < body.length; i++) {
+                        r.push(body[i][0]);
+                    }
+                }
+                else {
+                    console.log((s) + body);
+                }
+                response(r);
+
+            });
+        }
+
+
+        var cheerio = $.find; // require('cheerio');
+        cheerio.load = $;
+        var fs = {
+            readFileSync: function() {
+                return localStorage.getItem('playlists')
+            },
+            writeFile: function(f, s, cb) {
+                localStorage.setItem('playlists', s);
+                cb()
+            }
+        }; //require('fs');
+
+        var curlistind = 0;
+        var playlists = [];
+        loadLists();
+        
+        function layoutCurList() {
+            allvids = [];
+            $('#queue').children().remove();
+            $('.listtitle').html(playlists.lists[curlistind].title);
+            if (playlists.lists[curlistind]) {
+                for (var i = 0; i < playlists.lists[curlistind].vids.length; i++) {
+                    var v = playlists.lists[curlistind].vids[i];
+                    v.type = 'up';
+                    v.sug = [];
+                    v.id = getVidId(v.link);
+                    v.ui = false;
+                    allvids.push(v);
+                }
+                //ipcRenderer.send('online-status-changed', 'eq:' + (playlists.lists[curlistind].eq || ''));
+
+            }
+            addMode = 'add';
+            ui();
+            //alert('layoutCurList'+allvide);
+            addMode = 'distribute';
+        }
+
+
+        function showSuggestionsPanel() {}
+
+        function setHeaders() {}
+
+
+
+
+
+
+
+
+
+        function ui() {
+            if (isDragging) {
+                setTimeout(ui, 1000);
+                return;
+            }
+            if (perspective == 'results') {
+                $('#findtools .info').hide();
+                $('.genere').remove();
+            }
+            if ($('#stage iframe').length > 0) $('#stage').html('');
+            inspoint = $('.insetpoint');
+            if (inspoint.length == 0) {
+                $('<div class="insetpoint"><div class="or-spacer"><div class="mask"></div><span><i>Insert point</i></span></div></div>').prependTo('#queue');
+                inspoint = $('.insetpoint');
+            }
+
+            var h = '';
+            var hq = '';
+            var newqids = [];
+            transitiond = 0;
+            addedvis = false;
+            addedinvis = 0;
+            for (var i = 0; i < allvids.length; i++) {
+                transitiond = i / allvids.length * 10;
+                if (allvids[i].ui) continue;
+                allvids[i].ui = true;
+
+
+
+                if (allvids[i].type == 'up' || allvids[i].type == 'search' || allvids[i].type == 'list' || allvids[i].type == 'root') {
+                    if (typeof allvids[i].sug!='undefined' && allvids[i].sug.length > 0) {
+                        var wrapped = false,
+                            devided = false;
+                        var rowvids = 8;
+                        var ha = [];
+                        for (var i1 = 0; i1 < Math.ceil(allvids[i].sug.length / rowvids); i1++) ha.push('');
+                        for (var i1 = 0; i1 < allvids[i].sug.length; i1 += ha.length) {
+                            for (var i2 = 0; i2 < ha.length; i2++) {
+                                if (allvids[i].sug.length > i1 + i2) {
+                                    var th = uivid(allvids[i].sug[i1 + i2], 'sug', devided);
+                                    if (allvids[i].sug[i1 + i2].type == 'devider') {
+                                        for (var i3 = 0; i3 < ha.length; i3++) {
+                                            ha[i3] += th;
+                                        }
+                                        devided = true;
+                                    }
+                                    else
+                                        ha[i2] += th;
+                                }
+                            }
+
+                            if ((allvids[i].type == 'search' || $('.suglist').length == 0)) addedvis = true;
+                            else addedinvis++;
+
+                        }
+                        for (var i1 = 0; i1 < ha.length; i1++) {
+                            h += ha[i1];
+                        }
+
+                    }
+                    if (allvids[i].type == 'up') {
+
+                        hq += uivid(allvids[i], 'list');
+                        if (addMode !== 'add')
+                            addInfo(delspan.replace('@id', allvids[i].id) + ' ' + allvids[i].title);
+                        newqids.push(allvids[i].id);
+                    }
+                }
+            }
+            $(h).appendTo('#stage');
+            if (hq != '') {
+                var jq = $(hq);
+                if (addMode == 'distribute') {
+                    if (window.lastditributed) {
+                        var al = window.lastditributed.next().next().next()[0] || $('#queue .vidui').last()[0];
+                        jq.insertAfter(al)
+                        window.lastditributed = $(al).next();
+                    }
+                    else {
+                        var al = $(inspoint).next() || $(inspoint).first();
+                        if (al.length > 0) {
+                            jq.insertAfter(al)
+                            window.lastditributed = al.next();
+                        }
+                        else {
+                            jq.prependTo('#queue');
+                            window.lastditributed = jq.next() || jq;
+                        }
+                    }
+                    jq.slideDown();
+                }
+                else if (addMode == 'distribute')
+                    $(jq).appendTo('#queue');
+                else
+                    $(jq).insertAfter(inspoint);
+            }
+hilight();
+        }
+
+        function vidColor(v) {
+
+            return 'background-image: linear-gradient(to bottom left, rgb(234, 234, 234), #8E8E8E);'
+        }
+
+        function uivid(v, t, postdevided) {
+            if (v.type == 'devider') {
+                var h = '<div class="devider"></div>';
+                return h;
+            }
+            var h = '<div data-link="' + v.link + '" style="' + (postdevided ? 'opacity:.73;    -webkit-filter: grayscale(1);    background: none;' : '') + ';nmin-width:' + Math.min(350, 256 + (v.title.length - 50) * 2 + 25) + 'px;    white-space: nowrap;' + vidColor(v) + ';" valign="top" class="vidui popin" id="' + v.id + '" onclick="clicked(' + v.id + ',\'' + t + '\',this,\'main\');setTimeout(hilight, 500);">';
+            h += '<table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td width="10"><img class="vidimgui" src="https://' + v.img.replace('https://', '') + '"> ';
+            h += '</td><td ><div class="title" >' + v.title + '</div></td></tr></table>';
+            if (v.dur && v.dur != '3:33') h += '<span class="vidtimeui" >' + v.dur + '</span> ';
+            h += '<div class="tools">';
+            h += '<span class="toolph""></span>';
+            h += '<span class="delall tool" title="delete this and all next videos" onclick="deleteAllVid(' + v.id + ');return false;"></span>';
+            h += '<span class="del tool" title="delete this video" onclick="deleteVid(' + v.id + ');return false;"></span>'
+                //h += '<span class="delwiz tool" title="delete anything like this video" onclick="deleteVid(' + v.id + ',true);return false;"></span>'
+            h += '<span class="addwiz tool"  title="add this video and more videos like it" onclick="clicked(' + v.id + ',\'' + t + '\',this.parentNode.parentNode,\'addwiz\');return false;"></span>'
+            h += '<span class="addtop tool" title="play this video next" onclick="addTop(' + v.id + ',\'' + t + '\',this.parentNode.parentNode);return false;"></span>'
+            h += '<span class="addbottom tool" title="add this video last" onclick="addBottom(' + v.id + ',\'' + t + '\',this.parentNode.parentNode);return false;"></span>'
+                //h += '<span class="playnext tool" title="play this next" onclick="addTop(' + v.id + ',\'' + t + '\',this.parentNode.parentNode);return false;"></span>'
+                //h += '<span class="skipto tool" title="skip to this" onclick="clicked(' + v.id + ',\'' + t + '\',this.parentNode.parentNode);return false;"></span>'
+            h += '</div></div>';
+            return h;
+        }
+
+
+
+        var families = {
+            "pop": 0,
+            "hip hop": 1,
+            "disco": 2,
+            "electro house": 3,
+            "rhythm and blues": 4,
+            "latin": 5,
+            "country": 6,
+            "metal": 7,
+            "rock": 8,
+            "folk": 9,
+            "blues": 10,
+            "reggae": 11,
+            "jazz": 12,
+            "classical": 13,
+            "world": 14
+        }
+        var familiesks = Object.keys(families);
+
+        function setup(isinit) {
+            //setTimeout(function () { $('#findtools .info').fadeIn(); }, 1500);
+            $('#findtools .info').show();
+            if (isinit && playlists.settings.starred.star1.length + playlists.settings.starred.star2.length + playlists.settings.starred.star3.length + playlists.settings.starred.star4.length + playlists.settings.starred.star5.length == 0) {
+            }
+            showMoods();
+            if (isinit) addMode = 'init';
+            if (isinit) setTimeout(function() {
+                addMode = 'distribute';
+            }, 6000);
+        }
+        function showGenres() {
+            perspective = 'genres';
+            $('#stage').html('');
+            for (var i = 0; i < familiesks.length; i++) {
+                var f = familiesks[i];
+                $('<div class="searchheader slidein genere" style="   white-space: normal;cursor:pointer;overflow:hidden;display: inline-block;margin: 20px 20px 0px 20px;cursor:pointer;    display: inline-block;font-size: 30px;padding: 10px 15px 10px 30px;' + (i % 3 == -1 ? 'float:right;' : i % 6 < 0 ? 'margin-left:100px;' : '') + ' " onclick="dosearch(\'' + f + ' music\',\'genere\');$(\'.genere\').remove();"><span class="sprite" style="background-position:-' + ((i + 3) * 210) + 'px 5px;width:100px;height:100px; margin-right: 15px;"></span>' + f.capitalize() + '<div class="dosearch searchtool" ></div></div>' + (familiesks.length == i + 1 ? '<div class="spacer"></div>' : '')).appendTo('#stage');
+            }
+        }
+        function showMoods() {
+            perspective = 'moods';
+            $('#stage').html('');
+            
+            $('<div id="stage_moods" style=""> <div class="boxmood" mood="Feeling_good"><div class="moodhlc">Feeling Good</div></div><div class="boxmood" mood="Hits"><div class="moodhlnc">Hits</div></div><div class="boxmood" mood="Happy"><div class="moodhlc">Happy</div></div><div class="boxmood"><div class="moodhlc">Calm</div></div><div class="boxmood"><div class="moodhlnc">Relaxation</div></div><div class="boxmood"><div class="moodhlnc">Cool</div></div><div class="boxmood" mood="Energetic"><div class="moodhlc">Energetic</div></div><div class="boxmood"><div class="moodhlnc">Victorious</div></div><div class="boxmood"><div class="moodhlnc">Powerful</div></div><div class="boxmood"><div class="moodhlc">Dreamy</div></div><div class="boxmood"><div class="moodhlnc">Hopeful</div></div><div class="boxmood" mood="Sensual"><div class="moodhlc">Sensual</div></div><div class="boxmood"><div class="moodhlnc">Sexual</div></div><div class="boxmood" mood="Dance_euphorical"><div class="moodhlnc">Euphorical</div></div><div class="boxmood" mood="Groove"><div class="moodhlnc">Groove</div></div><div class="boxmood" mood="Sad"><div class="moodhlc">Sad</div></div><div class="boxmood"><div class="moodhlnc">Melancholic</div></div><div class="boxmood"><div class="moodhlnc">Sentimental</div></div><div class="boxmood"><div class="moodhlnc">Nostalgic</div></div><div class="boxmood"><div class="moodhlc">Angry</div> </div><div class="boxmood"><div class="moodhlnc">Revolted</div></div><div class="boxmood"><div class="moodhlnc">Tense</div></div><div class="boxmood"><div class="moodhlnc">Scared</div></div><div class="boxmood"><div class="moodhlnc">Tormented</div></div></div>').appendTo('#stage');
+            $('#stage_moods .boxmood').not('.moodhooked').addClass('moodhooked').click(moodClicked);
+
+        }
+        function showScenes() {
+            perspective = 'scenes';
+            $('#stage').html('');
+            $('<div id="stage_scenes" style=""><div class="boxmood" mood="Waking_Up"><div class="moodhlc">Waking Up</div> </div><div class="boxmood"><div class="moodhlnc" mood="waking_up_slowly">Slowly</div></div><div class="boxmood"><div class="moodhlnc" mood="sleep">Back to sleep</div></div><div class="boxmood"><div class="moodhlc">Energy Booster</div></div><div class="boxmood"><div class="moodhlnc">Fast</div></div><div class="boxmood"><div class="moodhlc">Chillout</div></div><div class="boxmood" mood="Sunday_morning"><div class="moodhlnc">Sunday Morning</div></div><div class="boxmood" mood="Party"><div class="moodhlc">Party</div></div><div class="boxmood"><div class="moodhlc">Dance</div> </div><div class="boxmood" mood="Dance_slow"><div class="moodhlnc">Slow</div></div><div class="boxmood"><div class="moodhlc">Gym</div> </div><div class="boxmood" mood="Gym_fast"><div class="moodhlc">Fast</div></div><div class="boxmood" mood="Gym_very_fast"><div class="moodhlnc">Very Fast</div></div><div class="boxmood" mood="Gym_woman"><div class="moodhlnc">Girls</div></div><div class="boxmood" mood="Gym_slow"><div class="moodhlnc">Slow</div></div><div class="boxmood"><div class="moodhlnc">Soft</div></div><div class="boxmood" mood="Driving"><div class="moodhlc">Driving</div></div><div class="boxmood" mood="Driving_holidays"><div class="moodhlnc">Holidays</div></div><div class="boxmood" mood="Driving_week-end"><div class="moodhlnc">Week-end</div></div><div class="boxmood" mood="Eating_with_friends"><div class="moodhlc">Eating</div></div><div class="boxmood" mood="Eating_with_friends"><div class="moodhlnc">With Friends</div></div><div class="boxmood" mood="Eating_with_myself"><div class="moodhlnc">With Myself</div></div><div class="boxmood" mood="Studying"><div class="moodhlc">Studying</div></div><div class="boxmood" mood="Studying_no_vocal"><div class="moodhlnc">No vocals</div></div></div>').appendTo('#stage');
+            $('#stage_scenes .boxmood').not('.moodhooked').addClass('moodhooked').click(moodClicked);
+
+        }
+
+        String.prototype.capitalize = function () {
+            return this.charAt(0).toUpperCase() + this.slice(1);
+        }
+
+
+
+        function addGenre(f) {
+            window.addSearch = true;
+            //window.playSearch = false;
+            dosearch(f + ' music', 'genere');
+        }
+        function playGenre(f) {
+            $('#stage .vidui').remove();
+            clearQueue();
+            window.addSearch = true;
+            //window.playSearch = true;
+            dosearch(f + ' music', 'genere');
+        }
+
+        var perspective = 'init';
+        var moodProbeQueue = [];
+        function moodClicked(e) {
+            e.preventDefault();
+            var k = '';
+            $('#help').hide();
+            $('#helpinit').hide();
+            $('#stage').show();
+            $('#inittabs').show();
+            tablist()
+
+            perspective = 'results';
+            if (typeof $(this).attr('mood') != 'undefined') k = $(this).attr('mood');
+            else if ($(this).find('[mood]').length > 0) k = $(this).find('[mood]').attr('mood');
+            else k = (this.textContent.split('\n')[0]).replace(/^\s+|\s+$/g, '');
+            progress(5);
+            var kj = k.toLowerCase().replace(' ', '_').replace(' ', '_').replace(' ', '_');
+            var kjp;
+            kjp = $(this).parents('[mood]').length == 0 ? kj : $(this).parents('[mood]').last().attr('mood').toLowerCase().replace(' ', '_').replace(' ', '_').replace(' ', '_');
+
+            pretitle = '<span class="moodtitle_' + kj + ' moodtitlep_' + kjp + ' moodtitle">' + k.replace('_', ' ').replace('_', ' ') + '</span>';
+            $('#stage_sug').html('<div class="emptyinfoinner"><h1><div id="spinner"><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p><p></p></div>Mood suggestions are being generated...</h1><h3>Drag-Drop, Click or Star to <span style="color: goldenrod;">add records to the playlist</span></h3> </div>').addClass('emptyinfo');
+
+            //debugger;
+            $.ajax({
+                cache: false,
+                dataType: 'json',
+                type: 'GET',
+                timeout: 5000, //&order=viewCount
+                url: '/moods/' + kj + '.js'
+            }).done(
+                function (res, state) {
+                    //debugger;
+                    if (state != 'success') {
+                        console.log('ERR: ' + state);
+                        debugger;
+                        return;
+                    }
+                    function shufflearray(a) {
+                        var j, x, i;
+                        for (i = a.length; i; i--) {
+                            j = Math.floor(Math.random() * i);
+                            x = a[i - 1];
+                            a[i - 1] = a[j];
+                            a[j] = x;
+                        }
+                    }
+                    shufflearray(res);
+                    
+                    $('#queue').children().remove();
+                    researchQueue = [];
+                    moodProbeQueue = [];
+                    researchInProgress = false;
+                    //clearQueue();
+                    var nlists = 0, nadd = 0;;
+
+                    for (var i = 0; i < res.length; i++) {
+                        //if (Math.random() * 100 > res.length * .95) continue;
+                        if (nlists > 15) break;
+                        var hr = res[i]
+                        var t = hr[2];
+                        if (!isGoodTitle(t)) continue;
+                        var l = hr[8].split('?v=')[1];
+                        var v = {
+                            id: getVidId(l),
+                            basevidid: null,
+                            subvidid: null,
+                            link: hr[8],
+                            img: hr[7],
+                            title: t,
+                            type: 'up',
+                            isgood:true,
+                            desc: 'Mood: ' + k.replace('_', ' ').replace('_', ' '),
+                            dur: hr[9] // YTDurationToSeconds(vo.contentDetails.duration)
+
+                            //views: $($(this).find('.view-count')[0]).text().split(' ')[0]
+                        };
+
+                        vidExists(v, 'up');
+                        allvids.push(v);
+                        addMode = 'add';
+
+                        ui();
+                        addMode = 'distribute';
+                        if (nlists++ == 0) playNext();
+                        //if (Math.random() * 100 > res.length * .95){//1.2) {
+                        if (nlists % 3 == 1 && nlists < 18) {
+                            //console.log('seeding: ' + hr[1] + ' - ' + hr[2]);
+                            moodProbeQueue.push(v);
+                            nadd++;
+
+
+                            //window.probedepth = 3;
+                            //researchQueue.unshift({
+                            //    type: 'probe',
+                            //    url: l,
+                            //    depth: 0,
+                            //    probedepth: 3,
+                            //    v: v
+                            //    //v: { title: t}
+                            //    //v: job.v
+                            //});
+                        }
+                        //researchQueue.push({
+                        //    type: 'list',
+                        //    url: hr.id.playlistId,
+                        //    title: hr.snippet.title
+                        //})
+                        //if (++nlists > (type != 'genere' ? 3 : 4)) break;
+                        //return;
+                    }
+
+
+                });
+
+            return false;
+
+        }
+
+
+
+
+window.lastlistaction=0;
+
+$('#stage, #queue').scroll(hilight);
+function hilight(){
+    $('.hilight').removeClass('hilight').removeClass('hilight0').removeClass('hilight2').removeClass('hilight4');
+    var vis=$('#find .vidui:onScreen').first();
+    var st= $('#stage').scrollTop();
+    if (vis[0]!=$('#find .vidui').first()[0] || st>10){
+        vis=vis.next();
+        if(st>50 && vis[0]!=$('#find .vidui').last()[0])
+            vis=vis.next();
+    }
+    vis.addClass('hilight').addClass('hilight'+window.lastrateing)
+
+    vis=$('#list .vidui:onScreen').first();
+    if (vis[0]!=$('#list .vidui').first()[0] || $('#queue').scrollTop()>10) vis=vis.next();
+    if (vis.is('.insetpoint'))vis=vis.next();
+    vis.addClass('hilight').addClass('hilight'+window.lastlistaction)
+    
+}
+    </script>
+</body>
+
+</html>

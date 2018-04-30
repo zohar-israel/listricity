@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" prefix="og: http://ogp.me/ns#" class="js no-touch svg no-oldie no-ie webgl video canvas no-cssFilter cssObjectFit cssAnimation no-positionFixed pageJump no-page-transition" lang="en-US">
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7, IE=9">
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<meta charset="utf-8">
+
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+	<link rel="stylesheet" type="text/css" href="index_files/ac-globalnav.css">
+	<link rel="stylesheet" type="text/css" href="index_files/ac-globalfooter.css">
+	<link rel="stylesheet" type="text/css" href="index_files/ac-localnav.css">
+
+
+	<title>Listricity - Cloud Music Player</title>
+	<meta name="Description" content="Stream from the entire cloud">
+	<meta property="og:url" content="http://www.listricity.com">
+	<meta property="og:title" content="Listricity - Cloud Music Player">
+	<meta property="og:description" content="Stream from the entire cloud">
+	<meta property="og:image" content="listricity.png">
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="listricity">
+	<link rel="stylesheet" href="index_files/a.css" type="text/css" media="all">
+	<link rel="stylesheet" href="index_files/music.css">
+	<link rel="stylesheet" href="index_files/music_002.css">
+	<link rel="stylesheet" href="index_files/overview.css">
+	<link rel="stylesheet" href="index_files/overview_002.css">
+	<link rel="stylesheet" href="index_files/giftcards.css">
+	<script src="index_files/head.js" type="text/javascript" charset="utf-8"></script>
+
+	<style>
+		.share {
+			background-image: url(data:image/png;base64,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);
+			height: 45px;
+			width: 45px;
+			background-repeat: no-repeat;
+			display: inline-block;
+			cursor: pointer;
+			margin: 4px;
+		}
+		
+		.share.facebook {
+			background-position: -48px 0;
+		}
+		
+		.share.twitter {
+			background-position: -101px 0;
+			background-size: 197px;
+		}
+		
+		.share:hover {
+			background-position-y: -48px;
+		}
+		
+		.share.twitter:hover {
+			background-position-y: -50px;
+		}
+		
+		.share.email:hover::after {
+			color: white;
+		}
+		
+		.share.email::after {
+			content: "hi@listricity.com";
+			position: absolute;
+			margin-top: 50px;
+			font-size: 21px;
+			color: #aaa;
+			margin-left: -17px;
+		}
+	</style>
+	<script>
+		(function(i, s, o, g, r, a, m) {
+			i['GoogleAnalyticsObject'] = r;
+			i[r] = i[r] || function() {
+				(i[r].q = i[r].q || []).push(arguments)
+			}, i[r].l = 1 * new Date();
+			a = s.createElement(o),
+				m = s.getElementsByTagName(o)[0];
+			a.async = 1;
+			a.src = g;
+			m.parentNode.insertBefore(a, m)
+		})(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+		ga('create', 'UA-74159004-1', 'auto');
+		ga('send', 'pageview');
+	</script>
+
+</head>
+
+<body class="ac-gn-current-music js-ready" style="background:#111;">
+	<aside id="ac-gn-segmentbar" class="ac-gn-segmentbar" data-strings="{ 'exit': 'Exit', 'view': '{%STOREFRONT%} Store Home', 'segments': { 'smb': 'Business Store Home', 'eduInd': 'Education Store Home', 'other': 'Store Home' } }"></aside>
+	<input id="ac-gn-menustate" class="ac-gn-menustate" type="checkbox" style="visibility:hidden;">
+	<nav style="transform: translate3d(0px, 0px, 0px); opacity: 0.999999;" id="ac-globalnav" class="js no-touch svg no-ie7 no-ie8" role="navigation" aria-label="Global Navigation" data-hires="false" data-analytics-region="global nav">
+		<div class="ac-gn-content" style="display:none;">
+			<ul class="ac-gn-header">
+				<li class="ac-gn-item ac-gn-menuicon">
+					<label class="ac-gn-menuicon-label" for="ac-gn-menustate" aria-hidden="true"> <span class="ac-gn-menuicon-bread ac-gn-menuicon-bread-top">
+						<span class="ac-gn-menuicon-bread-crust ac-gn-menuicon-bread-crust-top"></span> </span> <span class="ac-gn-menuicon-bread ac-gn-menuicon-bread-bottom">
+						<span class="ac-gn-menuicon-bread-crust ac-gn-menuicon-bread-crust-bottom"></span> </span>
+					</label>
+					<a href="#ac-gn-menustate" class="ac-gn-menuanchor ac-gn-menuanchor-open" id="ac-gn-menuanchor-open"> <span class="ac-gn-menuanchor-label">Open Menu</span> </a>
+					<a href="#" class="ac-gn-menuanchor ac-gn-menuanchor-close" id="ac-gn-menuanchor-close"> <span class="ac-gn-menuanchor-label">Close Menu</span> </a>
+				</li>
+			</ul>
+			<ul class="ac-gn-list">
+				<li class="ac-gn-item ac-gn-bag" id="ac-gn-bag">
+					<a aria-controls="ac-gn-bagview-content" aria-expanded="false" aria-haspopup="true" role="button" class="ac-gn-link ac-gn-link-bag" href="#" data-analytics-title="bag" data-analytics-click="bag" aria-label="Shopping Bag" data-string-badge="Shopping Bag with Items">
+					<span class="ac-gn-link-text">Shopping Bag</span> <span class="ac-gn-bag-badge" aria-hidden="true"></span> </a> <span class="ac-gn-bagview-caret ac-gn-bagview-caret-large"></span> </li>
+			</ul>
+			<!--<aside id="ac-gn-searchview" class="ac-gn-searchview" role="search" data-analytics-region="search">-->
+			<!--	<div class="ac-gn-searchview-content">-->
+			<!--		<form id="ac-gn-searchform" class="ac-gn-searchform" action="/us/search" method="get">-->
+			<!--			<div class="ac-gn-searchform-wrapper">-->
+			<!--				<input id="ac-gn-searchform-input" class="ac-gn-searchform-input" placeholder="Search apple.com" data-placeholder-long="Search for Products, Stores, and Help" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" type="text">-->
+			<!--				<input id="ac-gn-searchform-src" name="src" value="globalnav" type="hidden">-->
+			<!--				<button id="ac-gn-searchform-submit" class="ac-gn-searchform-submit" type="submit" disabled="disabled" aria-label="Submit"></button>-->
+			<!--				<button id="ac-gn-searchform-reset" class="ac-gn-searchform-reset" type="reset" disabled="disabled" aria-label="Clear Search"></button>-->
+			<!--			</div>-->
+			<!--		</form>-->
+			<!--		<aside id="ac-gn-searchresults" class="ac-gn-searchresults" data-string-quicklinks="Quick Links" data-string-suggestions="Suggested Searches" data-string-noresults="Hit enter to search."></aside>-->
+			<!--	</div>-->
+			<!--	<button id="ac-gn-searchview-close" class="ac-gn-searchview-close" aria-label="Close Search"> <span class="ac-gn-searchview-close-wrapper">-->
+			<!--				<span class="ac-gn-searchview-close-left"></span> <span class="ac-gn-searchview-close-right"></span> </span>-->
+			<!--	</button>-->
+			<!--</aside>-->
+			<!--<aside class="ac-gn-bagview" data-analytics-region="bag">-->
+			<!--	<div class="ac-gn-bagview-scrim"> <span class="ac-gn-bagview-caret ac-gn-bagview-caret-small"></span> </div>-->
+			<!--	<div class="ac-gn-bagview-content" id="ac-gn-bagview-content"> </div>-->
+			<!--</aside>-->
+		</div>
+	</nav>
+	<div id="ac-gn-curtain" class="ac-gn-curtain"></div>
+	<div id="ac-gn-placeholder" class="ac-nav-placeholder"></div>
+
+	<script type="text/javascript" src="index_files/ac-globalnav.js"></script>
+	<div id="ac-gn-viewport-emitter"> </div>
+
+
+
+	<script src="index_files/ac-analytics.js" type="text/javascript" charset="utf-8"></script>
+
+
+
+
+
+
+	<input id="ac-ln-menustate" class="ac-ln-menustate" type="checkbox">
+	<div class="css-sticky" id="ac-ln-sticky-placeholder"></div>
+	<nav style="transform: translate3d(0px, 0px, 0px); opacity: 0.999999;" id="ac-localnav" class="ac-ln-switch js no-touch svg no-ie7 no-ie8 css-sticky theme-dark" role="navigation" data-analytics-region="local nav" data-sticky="" lang="en-US">
+		<div class="ac-ln-wrapper">
+			<div class="ac-ln-background"></div>
+			<div class="ac-ln-content" style="    height: 90px;">
+				<h2 class="ac-ln-title">
+				<img src="listricitywhite2.png">
+			</h2>
+
+				<div class="ac-ln-menu">
+					<div class="ac-ln-menu-tray">
+
+						<ul class="ac-ln-menu-items">
+							<li class="ac-ln-menu-item" style="
+    color: #DADADA;
+">
+								<!--Listricty for Windows-->
+							</li>
+						</ul>
+					</div>
+
+					<div class="ac-ln-actions ac-ln-actions-center">
+						<div class="ac-ln-action ac-ln-action-menucta" aria-hidden="true">
+							<label for="ac-ln-menustate" class="ac-ln-menucta">
+								<span class="ac-ln-menucta-chevron"></span>
+							</label>
+						</div>
+						<div class="ac-ln-action ac-ln-action-button">
+							<a  class="ac-ln-button" href="#" onclick="window.top.help()" data-analytics-title="">Tutorial</a>
+						</div>
+					</div>
+					<div class="ac-ln-actions ac-ln-actions-center">
+						<div class="ac-ln-action ac-ln-action-menucta" aria-hidden="true">
+							<label for="ac-ln-menustate" class="ac-ln-menucta">
+								<span class="ac-ln-menucta-chevron"></span>
+							</label>
+						</div>
+						<div class="ac-ln-action ac-ln-action-button">
+							<a  class="ac-ln-button" href="#" onclick="window.top.setup()" data-analytics-title="">Browse Music</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</nav>
+	<label id="ac-ln-curtain" for="ac-ln-menustate"></label>
+	<script type="text/javascript" src="index_files/ac-localnav.js"></script>
+	<div id="ac-ln-viewport-emitter"> </div>
+
+
+	<main class="main page-overview" role="main" data-page-type="overview">
+
+		<section class="section section-dark section-hero section-hero-overview" data-section-type="OverviewHeroSection" data-analytics-section-engagement="name:hero">
+			<div style="pointer-events: auto;" class="section-background">
+				<div style="pointer-events: auto;" class="section-bleed">
+					<video style="display: block; top: -38px; left: 0px; width: 1440px; height: 810px;" tabindex="-1" src="index_files/introb.mp4"></video>
+					<div style="opacity: 0;" class="video-fade"></div>
+				</div>
+			</div>
+			<div style="pointer-events: auto;" class="section-foreground">
+				<div class="hero-headline">
+					<div class="section-image"></div>
+					<div class="section-content">
+						<h1 style="opacity: 1; transform: matrix(1, 0, 0, 1, 0, 0);" class="hero-copy">The Full-Featured Cloud-Based music player</h1>
+						<p style="opacity: 1; transform: matrix(1, 0, 0, 1, 0, 0);">
+							<a  href="#" onclick="window.top.setup()"  class="icon icon-external">Listen now</a>
+
+						</p>
+					</div>
+					<span style="opacity: 1; transform: matrix(1, 0, 0, 1, 0, 0);" class="icon icon-paddledown" aria-hidden="true">&nbsp;</span>
+				</div>
+				<div class="hero-intro is-absolute">
+					<div class="section-content">
+						<h2 class="intro-headline">
+							All the tracks from the cloud. <br class="small-hide"> and the smartest playlist tools
+						</h2>
+						<p class="intro-copy">
+							Listricity creates great playlists in minutes by making suggestions according to your searches and selections
+							<br/>
+							<br/> You can manually drag and drop video suggestions into&nbsp;your&nbsp;playlist,
+							<br/>
+							<b>But better yet!</b> you can tell Listricity how much you like (or dislike) a suggestion and have great playlists created for you.
+
+							<br>
+							<br>
+							<a  href="#" onclick="window.top.setup()" class="icon icon-external">Start listening now</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+
+
+		<section tabindex="0" class="section section-dark section-fullheight section-radio" data-jump-section-name="radio" data-section-type="OverviewRadioSection" data-analytics-section-engagement="name:radio">
+			<div class="section-background">
+				<div style="background-image: none;" class="section-bleed">
+					<div style="opacity: 0.000001; display: none;" class="radio-location" id="la" data-index="1">
+						<div class="radio-location-transparent"></div>
+						<div class="radio-location-deselected"></div>
+						<div class="radio-location-selected"></div>
+						<p>Los Angeles</p>
+					</div>
+					<div style="opacity: 0.000001; display: none;" class="radio-location" id="ny" data-index="2">
+						<div class="radio-location-transparent"></div>
+						<div class="radio-location-deselected"></div>
+						<div class="radio-location-selected"></div>
+						<p>New York</p>
+					</div>
+					<div style="opacity: 0.000001; display: none;" class="radio-location" id="london" data-index="3">
+						<div class="radio-location-transparent"></div>
+						<div class="radio-location-deselected"></div>
+						<div class="radio-location-selected"></div>
+						<p>London</p>
+					</div>
+					<div class="radio-gradient"></div>
+					<div id="globe-data" data-heightmap-src="globe.png" data-label-la-path="globe_callout_la_large.png" data-label-nyc-path="globe_callout_nyc_large.png" data-label-lon-path="globe_callout_lon_large.png" style="display: none;"></div>
+					<!--<div style="display: none;" id="globe-data" data-heightmap-src="https://listricity-zoharisrael.c9users.io/listricitylabel.png" data-label-la-path="https://listricity-zoharisrael.c9users.io/listricitylabel.png" data-label-nyc-path="https://listricity-zoharisrael.c9users.io/listricitylabel.png" data-label-lon-path="https://listricity-zoharisrael.c9users.io/listricitylabel.png"></div>-->
+					<canvas style="width: 1440px; height: 734px;" height="734" width="1440"></canvas>
+				</div>
+			</div>
+			<div class="section-foreground">
+				<div class="section-content">
+					<div class="row">
+						<div class="column large-5 medium-6 small-12">
+							<div class="content-copy">
+								<div class="copy-container" data-analytics-region="learn more">
+									<h2 style="transform: translate3d(0px, 30px, 0px); opacity: 0;">Listricity<br class="small-hide"> The&nbsp;world’s<br class="small-hide"> smartest playlist builder.</h2>
+									<p style="transform: translate3d(0px, 60px, 0px); opacity: 0;">
+
+										Listricity uses dozens of indicators, from the length of a track to the number of likes and views it received, in combination with the most advanced AI methodologies to bring the best suggestions to your searches.
+										<br/> Once you made a few selections, and Listricity gets to know your taste, suggestions and automatic additions to&nbsp;your&nbsp;playlist will be tailor made, just for you.
+									</p>
+									<p style="transform: translate3d(0px, 90px, 0px); opacity: 0;" class="more-block"><a  href="#" onclick="window.top.setup()"  class="more">Get Started</a></p>
+								</div>
+							</div>
+						</div>
+						<div class="column large-6 large-offset-1 medium-offset-0 small-12">
+							<div class="content-hardware">
+								<div class="hardware-container">
+									<figure style="opacity: 0;" class="image-music-phone">
+										<div>
+											<figure class="image-music-radio-01-screen"></figure>
+										</div>
+									</figure>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section  class="section section-dark section-social" data-analytics-section-engagement="name:social">
+			<div class="section-content" style="display:none;" >
+
+				<div class="social-container">
+					<ul class="social-icons">
+
+					</ul>
+				</div>
+				<div class="column large-5 medium-6 small-12">
+					<div class="content-copy">
+						<div class="copy-container" data-analytics-region="learn more" style="transform: translate3d(0px, -41.0995px, 0px); opacity: 0.720524;padding-right: 20px;">
+							<h2 style="transform: translate3d(0px, 0px, 0px); opacity: 1;">Regain control over your playlists<br class="small-hide"></h2>
+							<p style="transform: translate3d(0px, 0px, 0px); opacity: 0.671204;">Listricity brings the variety of music from the cloud together with a set of powerful tools, all into a beautiful and interactive application
+								<br>
+								<br>Whether you like to search by artist, band, song name, or music genre, Listricity will be right there next to you reminding you of related beloved tracks</p>
+							<br/>
+							<p style="transform: translate3d(0px, 0px, 0px); " class="more-block"><a  href="#" onclick="window.top.setup()"  style="    background: #3392de;
+    background: -webkit-linear-gradient(#51a9ee, #147bcd);
+    background: linear-gradient(#51a9ee, #147bcd);
+    border-color: #1482d0;
+    color: white;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.54615;
+    font-weight: 500;
+    letter-spacing: normal;
+    padding: 0 10px;
+    border: 1px solid #07c;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+    text-shadow: 0 1px 1px rgba(28,115,184,0.64);
+    white-space: nowrap;
+    font-family: " Myriad Set Pro ","Helvetica Neue ","Helvetica ","Arial ",sans-serif;" class="more">Start now</a>
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="column large-6 large-offset-1 medium-offset-0 small-12">
+					<div class="">
+						<div class="">
+							<img src="index_files/screenshot2.jpg" style="
+    box-shadow: 0px 0px 25px 5px #000,10px -5px 150px -30px #aaa;
+    float: left;
+    border-radius: 4px;
+    margin-left: 22px;
+">
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="help" class="hoverpanel" style="margin-top:150px;color: #BCBCBC;display: inline-block; min-width: 600px;background-color: rgba(255, 255, 255, 0);height: 100%;z-index: 99999999;padding:50px;">
+
+            <h1 style="position:relative;">Meet Listricity<div style="display:none;position: absolute;right: -32px;width: 100px;height: 100px;background-color: rgba(255, 255, 255, 0.14);top: -30px;border-radius: 50%;box-shadow: 0 0 10px -2px;background-image: url(lg1.png);background-position: center;background-repeat: no-repeat;background-size: 86px;"></div></h1>
+            <hr>
+            <div style="line-height: normal;font-size: 20px;text-align: left;padding-bottom: 16px;">Listricity creates great playlists in minutes by making suggestions according to your searches and selections</div>
+            <div style="background-image:url(arrarea.png);width: 100%;height: 332px;background-size: contain;background-repeat: no-repeat;text-align: center;line-height: 53px;font-size: 35px;padding-top: 147px;margin-bottom: 12px;box-sizing: border-box;background-position: center;min-width: 400px;" class="">Suggestions
+                <br>Space
+
+
+            </div>
+            <div style="line-height: normal;font-size: 20px;text-align: left;">In the suggestions space you'll find video suggestions based on your recent actions.</div>
+            <div style="background-image: url(arrleft.png);width: 100%;height: 150px;background-size: 230px;background-repeat: no-repeat;line-height: 25px;font-size: 35px;padding-left: 13vw;box-sizing: border-box;margin-top: 63px;margin-left: -43px;" class="">Your Playlist
+                <br>
+                <div style="line-height: normal;font-size: 20px;text-align: left;padding-top: 7vw;">You can drag and drop video suggestions into your playlist
+                    <br>
+                    <br><b>But better yet!</b> you can tell Listricity how much you like (or disslike) a suggestion and let it do all the heavy lifting</div>
+            </div>
+            <div style="line-height: normal;font-size: 20px;text-align: left;margin-top: 124px;padding-bottom: 20px;">Here is how its done
+                <br> When you hover your mouse over a suggestion, a set of tools pops up.
+            </div>
+            <div style="background-image: url(sug.png);width: 100%;height: 136px;background-repeat: no-repeat;line-height: 25px;font-size: 35px;box-sizing: border-box;" class="">
+                <div style="height: 89px;"></div>
+                <div style="line-height: normal;font-size: 20px;text-align: left;padding-top: 50px;">
+                    Use the stars panel to express your feelings regarding a suggestion
+                    <ul>
+
+                        <li><b>5 Star</b>
+                            <br>
+                            <img src="5star.jpg">
+                            <br>Adds the video to the playlist and many more vidoes like it</li>
+                        <li><b>4 Star</b>
+                            <br>
+                            <img src="4star.jpg">
+                            <br>Pretty good, add it and a few more</li>
+                        <li><b>3 Stars</b>
+                            <br>
+                            <img src="3star.jpg">
+                            <br>Well... add just this one</li>
+                        <li><b>2 Star</b>
+                            <br>
+                            <img src="2star.jpg">
+                            <br>Kinda bad - remove from suggestions</li>
+                        <li><b>1 Star</b>
+                            <br>
+                            <img src="1star.jpg">
+                            <br>Sucks big time - remove this entire suggestion group</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="height: 500px;"></div>
+            <div id="anc1" style="line-height: normal;font-size: 20px;text-align: left;padding-bottom: 20px;">Listricity remembers your choices and tastes.
+                <br>When suggestions are made or when the playlist is automatically buffed up, those preferences are used.</div>
+            <div style="width: 100%; height: 150px; line-height: 25px; font-size: 35px; padding-left: 100px; box-sizing: border-box; margin-left: -43px; position: fixed; bottom: -500px; padding-top: 64px; " class="" id="helptoolsarrow">
+            	<div style="width: 133px;
+    height: 107px;
+    position: absolute;
+    left: 0;
+    top: 49px;
+    background-image: url(arrupright.png);
+    background-size: 130px;
+    background-position: 100% 50%;
+    background-repeat: no-repeat;
+    transform: rotate(-75deg);
+    margin-top: -49px;
+"></div>
+            	Playlist tools
+                <br>
+
+            </div>
+
+
+            <div style="line-height: normal;font-size: 20px;text-align: left;margin-top: 100px;height: 250px;" id="helptools">At the bottom of the playlist youll find your playlist tools
+                <br>
+                <br>Clear the list, stop, play, or shuffle and...
+                <div>
+                    <div style="padding-left:380px;right:0;float: right;margin-top: 24px;">
+                        <!--Buff up -->
+                        <br>
+                        <br>
+                        <button onclick="" style="float:left;margin-right: 22px;border-radius: 0 0px 99999px 9999px;line-height: 12px;width: 46px; */height: 32px;height: 36px;text-align: left;px;top: -6px;position: relative;">Buff<br/>up</button> This button adds tracks to your playlist based on the current contents of it, and on your previous selections.
+                        <br>
+                        <br>
+                        <!--Radio-->
+                        <br>
+                        <br>
+                        <button style="float:left;margin-right: 22px;border-radius: 99999px 9999px 0 0px;line-height: 12px;width: 46px;height: 36px;text-align: right;px;top: -6px;right: 3px;" onclick="">
+                            <input id="chkradio" type="checkbox" onclick="" style="margin-top: -2px;margin-right: -3px;">Radio</button>Checking the radio button automatically adds more tracks to the playlist when the last tracks are played.</div>
+
+                </div>
+            </div>
+
+
+            <div style="line-height: 43px; font-size: 35px; box-sizing: border-box; margin-left: -43px; position: fixed; top: -500px; padding-top: 76px; right: 16px; height: 300px; text-align: left; width: 301px; padding-right: 111px; " class="" id="helpsavearrow">
+            	<div style="     width: 133px;
+    height: 107px;
+    position: absolute;
+    right: 0;
+    top: 49px;   background-image: url(arrupright.png);
+    background-size: 130px;
+    background-position: 100% 50%;
+    background-repeat: no-repeat;
+    transform: rotate(61deg);
+"></div>&nbsp;&nbsp;&nbsp;Save it
+                
+                <br>
+
+            </div>
+
+
+            <div style="line-height: normal;font-size: 20px;text-align: left;margin-top: 200px;height: 400px;" id="savetools">
+                <h1 style="width:70%;">Made a great playlist?</h1>
+                <br>
+                <br> On the top right you'll find
+                <br>everything you need in order to:
+                <br>
+                <ul>
+                    <li>Save your lists</li>
+                    <li>Load them again</li>
+                    <li>Rename a list</li>
+                    <li>Duplicate a list</li>
+                    <li>and Delete lists</li>
+                </ul>
+            </div>
+
+
+
+
+
+
+
+            <div style="line-height: 40px; font-size: 35px; box-sizing: border-box; margin-left: -43px; position: fixed; top: -500px; padding-top: 38px; left: 56px; height: 300px; text-align: right; width: 404px; padding-right: 111px; background-image: url(&quot;arrupright.png&quot;); background-size: 122px; background-repeat: no-repeat;" class="" id="helpviewportarrow">Resizable
+                <!--<br>&amp;-->
+                <!--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
+                <!--<br>Detachable-->
+                <br>Viewport
+                <br>
+
+            </div>
+
+            <div style="line-height: normal;font-size: 20px;text-align: left;height: 350px;padding-left: 300px;" id="helpviewport">
+            	<h1>Viewport</h1>
+            	The viewport area is resizable
+                <!--<br>The dock button will place it back on the top left corner-->
+                <br>Double click for full screen
+                <br>And use the video controls, to set the volume and to seek to a point in the track.
+                <!--And use the stay-op-top button to keep only the viewport on top of all other windows.-->
+            </div>
+
+
+
+            <hr>
+            <h1>That's it!</h1> Click the
+            <button onclick="window.top.setup()" style="top: -7px;position: relative;border-radius: 50px 0 0px 50px;text-align: right;width: 52px;margin-bottom: 2px; */">♬
+                <br>Home</button>
+            button to start browsing geners or start a search on the search box
+            <!--<br> For advanced features and configurations click the-->
+            <!--<button onclick="window.top.settings()" class="btnsettings" style="    float: none;margin-right: auto;">Settings-->
+            <!--    <span style="font-size: 15px;top: 0px;position: absolute;left: 1px;height:16px;">⚙</span></button> button.-->
+
+
+<div style="height:100px;"></div>
+            <br>
+            <br>
+            <hr>
+            <h1>Drop me a line</h1> Listricity is still young and relays on your input to keep improving
+            <br>So please write an email to <a href="mailto:hi@listricity.com?Subject=Hi%20Listrcicity" target="_blank" style="text-decoration: none;    color: white;">hi@listricity.com</a> about any idea, requested feature, found bug, or anything else really.
+            <br>
+            <br>
+<div style="height:300px;"></div>
+
+
+            <br>
+            <br>
+            <hr> Still here? ok, let’s do some
+            <h1>Frequently Asked Questions</h1>
+            <br>
+            <div class="faqgroup">
+                <span class="faqq">Q</span>What is the meaning of life?
+                <br>
+                <br>
+                <span class="faqq">A</span>Hah! Easy, life is absolutely meaningless, next question.
+            </div>
+<br>
+            <div class="faqgroup">
+                <span class="faqq">Q</span>If Spiderman and Superman were to fight, who would win?
+                <br>
+                <br>
+                <span class="faqq">A</span>Good question! You see, Superman is an alien who can turn back time, so there's no match really.
+            </div>
+<br>
+            <div class="faqgroup">
+                <span class="faqq">Q</span>Where is the music coming from?
+                <br>
+                <br>
+                <span class="faqq">A</span>Wha… What … music in general you mean?
+            </div>
+<br>
+            <div class="faqgroup">
+                <span class="faqq">Q</span>Waidaminute! are you writing those questions yourself?!?
+                <br>
+                <br>
+                <span class="faqq">A</span>OK, out of time, enough questions for now, let’s do this again some time, ha?
+            </div>
+<br>
+
+
+            <div style="height:300px;"></div>
+
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			<center style="    margin-top: -100px;    margin-bottom: -100px;
+    height: 200px;">
+				<div>
+					<a href="mailto:hi@listricity.com?Subject=Hi%20Listrcicity" target="_blank" style="text-decoration: none;">
+						<div class="share email">
+						</div>
+					</a>
+					<div class="share facebook" onclick="window.open('https://www.facebook.com/Listricity-769355723196876/','share')">
+					</div>
+					<div class="share twitter" onclick="window.open('https://twitter.com/listricitymusic','share')">
+					</div>
+				</div>
+
+			</center>
+		</section>
+
+	</main>
+	<div class="main-next"></div>
+
+	<footer id="ac-globalfooter" class="js no-touch svg no-ie7 no-ie8" style="    
+	background-image: url(bg-footer.png);
+    height: 201px;
+    width: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    background-color: #111111;
+    background-blend-mode: lighten;" data-analytics-region="global footer" role="contentinfo" aria-labelledby="ac-gf-label" lang="en-US">
+	</footer>
+
+<div id="installinfo" style="text-align: left; position: fixed; top: 100px; z-index: 99999; width: 100%; padding: 50px 50px 50px 100px; display: none;background-color: rgba(241, 241, 241, 0.972549);background-image: -webkit-gradient(linear, left top, right bottom, from(#C3C5C7), to(#2E4960));" onclick="this.style.display='none'">
+  <span style="font-size: 15px;margin-top: -25px;display: inline-block;position: absolute;/* font-weight: 700; */float: right;padding-left: 40px;left: 700px;height: 473px;background-color: #1B58B8;margin-right: 50px;width: 360px;color: white;padding-top: 50px;text-align: left;border-radius: 4px;padding-right: 40px;border: 1px solid #333;"><b>Q: </b>Why do I see this message?
+<br><br>
+  <b>A: </b>When you download a program from the Internet, SmartScreen Filter will check the program against a list of programs that are downloaded by a significant number of other Internet Explorer users and a list of programs that are known to be unsafe. If the program you're downloading isn't on either list, SmartScreen Filter will display a warning. <b style="
+    margin-top: 10px;
+    display: block;
+    margin-bottom: -10px;
+">It doesn't necessarily mean the website is fraudulent or that the program is malware.</b><br>
+ The default behavior of SmartScreen does not allow many 3rd party applications to run when they’re downloaded
+<div style="
+    text-align: right;
+    margin-top: 48px;
+">Reed more at <a href="http://windows.microsoft.com/en-us/windows7/smartscreen-filter-frequently-asked-questions-ie9" style="
+    color: #fff;
+">Microsoft Documentation</a></div></span><span style="font-size:20px;margin-top: -25px;display: inline-block;position: absolute;font-weight: 700;">Thank you for downloading Listricity</span><br>  
+  When installing Listricity, you may see a message like the one below.
+  <br>
+To bypass this message 
+click the More info link.
+
+  <br><img src="index_files/windows-smart-more-info.png" style="
+"><br>And then click Run anyway to proceed with the installation.<br><img src="index_files/smartscreen-run-anyway.png"></div>
+
+	<script data-three-location="index_files/three.js"></script>
+	<script src="index_files/shaders.js" type="text/javascript" charset="utf-8"></script>
+	<script src="index_files/externals.js" type="text/javascript" charset="utf-8"></script>
+	<script src="index_files/main.js" type="text/javascript" charset="utf-8"></script>
+	<script src="index_files/three.js"></script>
+<script>
+	function showinfo(){
+		document.getElementById('installinfo').style.display='inline';
+ga('send', {
+  hitType: 'event',
+  eventCategory: 'Download',
+  eventAction: 'Install',
+  eventLabel: 'listricity'
+});		
+	}
+
+
+
+        function setHeaders() {
+
+            var body = document.body,
+    html = document.documentElement;
+
+var height = Math.max( body.scrollHeight, body.offsetHeight, 
+                       html.clientHeight, html.scrollHeight, html.offsetHeight );
+                       //height;//
+                var wh =  window.innerHeight - 250;
+                var oy = document.getElementsByTagName('body')[0].scrollTop;
+                var anc1=document.getElementById('anc1').offsetTop+1500;
+                var aip=oy > anc1+120 && oy < anc1+400;
+                if (aip && !document.getElementById('helptoolsarrow').vis) {
+                    document.getElementById('helptoolsarrow').vis = true;
+                    document.getElementById('helptoolsarrow').style.bottom='-10px';
+                }
+                else if (!aip &&
+                document.getElementById('helptoolsarrow').vis) {
+                    document.getElementById('helptoolsarrow').vis = false;
+                    document.getElementById('helptoolsarrow').style.bottom='-500px'; //.fadeOut();
+                }
+                var aip=oy > anc1+820 && oy < anc1+1200;
+                if (aip && !document.getElementById('helpsavearrow').vis) {
+                    document.getElementById('helpsavearrow').vis = true;
+                    document.getElementById('helpsavearrow').style.top='60px';
+                }
+                else if (!aip && document.getElementById('helpsavearrow').vis) {
+                    document.getElementById('helpsavearrow').vis = false;
+                    document.getElementById('helpsavearrow').style.top='-500px'; //.fadeOut();
+                }
+                var aip=oy > anc1+1120 && oy < anc1+1400;
+                if (aip && !document.getElementById('helpsavearrow').vis) {
+                    document.getElementById('helpviewportarrow').vis = true;
+                    document.getElementById('helpviewportarrow').style.top='100px';
+                }
+                else if (!aip && document.getElementById('helpviewportarrow').vis) {
+                    document.getElementById('helpviewportarrow').vis = false;
+                    document.getElementById('helpviewportarrow').style.top='-500px'; //.fadeOut();
+                }
+
+
+            
+            //lastscrolltop = nh;
+        }
+     //   debugger;
+        window.onscroll =setHeaders;
+	document.getElementsByTagName('html')[0].addEventListener('scroll',setHeaders);
+	document.getElementsByTagName('body')[0].addEventListener('scroll',setHeaders);
+</script>
+
+	<div id="map-helper"></div>
+</body>
+
+</html>

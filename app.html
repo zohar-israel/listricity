@@ -1,0 +1,2711 @@
+<!DOCTYPE html>
+<html style="padding:0;margin:0;background-color:#333">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Listricity</title>
+
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/ui-darkness/jquery-ui.css" rel="stylesheet">
+    <script>
+        window.$ = window.jQuery = require('./jquery.min.js');
+
+
+        var childProcess = require("child_process");
+
+        function opener(args, options, callback) {
+            // http://stackoverflow.com/q/1480971/3191, but see below for Windows.
+            var command = process.platform === "win32" ? "cmd" :
+                process.platform === "darwin" ? "open" :
+                "xdg-open";
+
+            if (typeof args === "string") {
+                args = [args];
+            }
+
+            if (typeof options === "function") {
+                callback = options;
+                options = {};
+            }
+
+            if (options && typeof options === "object" && options.command) {
+                if (process.platform === "win32") {
+                    // *always* use cmd on windows
+                    args = [options.command].concat(args);
+                }
+                else {
+                    command = options.command;
+                }
+            }
+
+            if (process.platform === "win32") {
+                // On Windows, we really want to use the "start" command. But, the rules regarding arguments with spaces, and
+                // escaping them with quotes, can get really arcane. So the easiest way to deal with this is to pass off the
+                // responsibility to "cmd /c", which has that logic built in.
+                //
+                // Furthermore, if "cmd /c" double-quoted the first parameter, then "start" will interpret it as a window title,
+                // so we need to add a dummy empty-string window title: http://stackoverflow.com/a/154090/3191
+                //
+                // Additionally, on Windows ampersand needs to be escaped when passed to "start"
+                args = args.map(function(value) {
+                    return value.replace(/&/g, '^&');
+                });
+                args = ["/c", "start", '""'].concat(args);
+            }
+
+            return childProcess.execFile(command, args, options, callback);
+        }
+    </script>
+
+    <script src="extras.js">
+    </script>
+
+    <link href="index.css" rel="stylesheet">
+</head>
+
+<body style="padding:0;margin:0;background-color:#333">
+    <div id="galaxy" style="    position: fixed;
+    left: 290px;
+    top: 122px;
+    bottom:50px;
+    right:0;
+    ">
+        <div id="maincontent">
+
+
+            <canvas style="display:none" id="canvas" width="350" height="150"></canvas>
+            <canvas style="display:none" id="canvas3" width="570" height="570"></canvas>
+            <canvas id="canvas2" width="570" height="570" style="    position: fixed;opacity:.3;z-index: -1;left: 295px;right: 0;bottom: 0px;-webkit-filter: grayscale(.5);top: 122px;width: 100vw;height: 100vh;"></canvas>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        </div>
+    </div>
+
+    <div class="titlebar" style="">
+
+    </div>
+    <div class="closebg" style="">
+        <div class="closedot" onclick="ipcRenderer.send('online-status-changed', 'close:');"></div>
+    </div>
+    <script>
+        var iprogress = 0;
+
+        function progress(p) {
+            if (p >= 100) {
+                setTimeout('progress(0)', 1000)
+            }
+            if (p == 0) $('.progress-bar').hide();
+            else if (iprogress == 0) $('.progress-bar').show();
+            iprogress = p;
+            $('.progress-bar').width(p + '%');
+            if (p > 25 && p < 40)
+                $('.progress-bar').css('background-color', '#86e01e');
+            else if (p < 55)
+                $('.progress-bar').css('background-color', '#f2d31b');
+            else if (p < 65)
+                $('.progress-bar').css('background-color', '#f2b01e');
+            else if (p < 85)
+                $('.progress-bar').css('background-color', '#f27011');
+            else if (p > 84)
+                $('.progress-bar').css('background-color', '#f63a0f');
+
+        }
+
+        var hto = false;
+        var lastscrolltop = 0;
+        var scrolltopscount = 0;
+        var scolltops = [];
+        var lastpeeked = new Date();
+        var scrolltimer = false;
+        var delspan = '<span class="del" onclick="deleteVid(@id,false);$(this).parent().remove()" style="    background-position: center;background-size: 10px;background-repeat:no-repeat;width: 16px;margin-right:5px;cursor:pointer;height: 16px;display: inline-block;margin-bottom: -4px;    margin-left: -25px;"></span>';
+
+        var researchQueue = [];
+        var researchInProgress = false;
+
+        function research() {
+            if (researchQueue.length == 0 || researchInProgress) {
+                if (!researchInProgress) {
+                    if (iprogress != 0 && iprogress != 100) {
+                        progress(100);
+                        $('#queue .vidui').each(function() {
+                            var v = getVidById(this.id);
+                            for (var i2 = 0; i2 < allvids.length; i2++) {
+                                if (allvids[i2].subvidid == v.id && !allvids[i2].friended) {
+                                    if (!v.friends) v.friends = [];
+                                    allvids[i2].friended = true;
+                                    v.friends.push(allvids[i2]);
+                                }
+                            }
+                        });
+                    }
+
+
+
+                }
+                else {
+                    progress(Math.round(Math.min(99, iprogress + (100 - iprogress) / (10 * Math.min(9, Math.max(1, (researchQueue.length)))))));
+                    //progress(iprogress)
+                }
+                return;
+            }
+            researchInProgress = true;
+            var job = researchQueue[0];
+            researchQueue.splice(0, 1);
+            switch (job.type) {
+                case 'list':
+                    {
+                        getList(job.url);
+                        break;
+                    }
+                case 'probe':
+                    {
+                        //window.probedepth=job.depth;
+                        if (job.curbasevid) curbasevid=job.curbasevid;
+                        if (job.cursubvid) cursubvid=job.cursubvid;
+                        probe(job.url, job.depth, false, job.probedepth)
+                        break;
+                    }
+                case 'buff':
+                    {
+                        probe(job.url, 0, job.depth, job.probedepth)
+                        break;
+                    }
+            }
+
+        }
+        setInterval(research, 500);
+
+        function setHeaders() {
+            //return;
+            //var wst = $('#scrollspace').scrollTop();
+            //if (wst > 1) scrolltopscount = 0;
+            var lastscrollleft = 0;
+            lastscrollleft = window.lsl;
+            var nh = $(window).innerHeight() - 100; // $('#scrollspace').scrollTop() + $(window).innerHeight()+200;
+            var ww = $('#stage').width();
+            var ldo = false;
+            var c = $('#stage .vidui').filter(function() {
+                return $(this).offset().top > nh
+            }).length;
+            $('.sugmore').html('Suggestions ' + (c > 0 ? '(' + c + ')' : ''));
+
+            if ($('#help').is(':visible')) {
+                var wh = $(window).height() - 250;
+                var oy = $('#helptools').offset().top; //-$('#scrollspace').scrollTop();
+                if (oy > wh / 2 && oy < wh && !$('#helptoolsarrow')[0].vis) {
+                    $('#helptoolsarrow')[0].vis = true;
+                    $('#helptoolsarrow').css('bottom', '40px');
+                }
+                else if ((oy < wh / 3 || oy > wh) && $('#helptoolsarrow')[0].vis) {
+                    $('#helptoolsarrow')[0].vis = false;
+                    $('#helptoolsarrow').css('bottom', '-500px'); //.fadeOut();
+                }
+                oy = $('#savetools').offset().top + 200;
+                if (oy > wh / 2 && oy < wh && !$('#helpsavearrow')[0].vis) {
+                    $('#helpsavearrow')[0].vis = true;
+                    $('#helpsavearrow').css('top', '50px');
+                }
+                else if ((oy < wh / 3 || oy > wh) && $('#helpsavearrow')[0].vis) {
+                    $('#helpsavearrow')[0].vis = false;
+                    $('#helpsavearrow').css('top', '-500px'); //.fadeOut();
+                }
+                oy = $('#helpviewport').offset().top + 200;
+                if (oy > wh / 2.8 && oy < wh && !$('#helpsavearrow')[0].vis) {
+                    $('#helpviewportarrow')[0].vis = true;
+                    $('#helpviewportarrow').css('top', '200px');
+                }
+                else if ((oy < wh / 2.8 || oy > wh) && $('#helpviewportarrow')[0].vis) {
+                    $('#helpviewportarrow')[0].vis = false;
+                    $('#helpviewportarrow').css('top', '-500px'); //.fadeOut();
+                }
+
+
+            }
+            // .css({
+            //     bottom: 0,
+            //     //width: $('#stage').width() + 14,
+            //     //'margin-left': '-16px',
+            //     //'border-radius': '0'
+            // });
+            // function trim() {
+            // 	if ( //lastscrolltop!=nh &&
+            // 		$('#stage').height() > 3000 && $("body").scrollTop() > 500) {
+            // 		var te = $('#stage').children().not('.sugmore').first();
+            // 		if (te.is('.spacer')) {}
+            // 		else {
+            // 			var bst = $("body").scrollTop();
+            // 			var eh = te.height() - parseFloat(te.css('margin-top')) - parseFloat(te.css('margin-bottom'));
+            // 			console.log(bst + ' ' + eh);
+            // 			$("body").scrollTop(bst - eh);
+            // 		}
+            // 		te.remove();
+            // 		if (scrolltimer) {
+            // 			clearTimeout(scrolltimer);
+            // 			scrolltimer = false;
+            // 		}
+            // 	}
+            // }
+            // if (lastscrolltop != nh) {
+            // 	if (scrolltimer) {
+            // 		clearTimeout(scrolltimer);
+            // 		scrolltimer = false;
+            // 	}
+            // 	scrolltimer = setTimeout(trim, 1000);
+            // }
+            //trim();
+            lastscrolltop = nh;
+        }
+        window.onbeforeunload = function() {
+            try {
+                //nightmare.end();
+            }
+            catch (e) {}
+            //return 'Are you sure you want to leave?';
+        };
+        const electron = require('electron');
+        const BrowserWindow = electron.BrowserWindow;
+        const ipcRenderer = electron.ipcRenderer;
+        //var researchWindow = new BrowserWindow({width: 291, height: 200,frame: false,title : "Listricity",icon:'',acceptFirstMouse:true,hasShadow:false});
+        var updateOnlineStatus = function() {
+            ipcRenderer.send('online-status-changed', navigator.onLine ? 'online' : 'offline');
+        };
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        updateOnlineStatus();
+
+        // include the libraries we need
+        var request = require('request');
+        var cheerio = require('cheerio');
+        //var Nightmare = require('nightmare');
+        //var vo = require('vo');
+        var fs = require('fs');
+
+        var indebug = true;
+        // var nightmare = Nightmare({
+        //     show: false,
+        //     waitTimeout: 5000,
+        //     dock: false,
+        //     skipTaskbar: true,
+        //     "skip-taskbar": true,
+        //     autoHideMenuBar: true,
+        //     images: false,
+        //     // 'web-preferences':{
+        //     //   partition: 'nopersist',
+        //     // }
+        // });
+
+
+        // function getUpNext(u, cb) {
+        //     var url = u;
+        //     var lcb = cb;
+        //     var upnext;// =
+        //         // lcb(false, 200, upnext);
+        //         // researchWindow.loadURL(u);
+        //     vo(function*() {
+        //
+        //     	var upnext = yield nightmare
+        //     		.goto(url)
+        //     		//.wait('.autoplay-bar')
+        //     		.evaluate(function() {
+        //           return document.body.innerHTML;
+        //     		});
+        //       lcb(false,200,upnext);
+        //     	//yield nightmare.end();
+        //     })(function(err, result) {
+        //     	if (err) return console.log(err);
+        //     });
+        // }
+        //
+        //		var l = getUpNext('https://www.youtube.com/watch?v=QLPFMzmKSec', 1);
+
+
+        var curlistind = 0;
+        var playlists = [];
+
+        function loadLists() {
+            try {
+
+                var liststext = fs.readFileSync(window.userDataDir + '/lists.txt', 'utf8')
+                playlists = JSON.parse(liststext);
+                curlistind = playlists.curlistind;
+            }
+            catch (e) {
+                console.log(e.message);
+                playlists = {
+                    lists: [{
+                        title: 'I love MUSIC!!',
+                        vids: []
+                    }],
+                    curlistind: 0
+                }
+            }
+            if (typeof playlists.settings == 'undefined') {
+                playlists.settings = {
+                    optimalLength: {
+                        from: 60 * 2,
+                        to: 60 * 11
+                    },
+                    excludes: ['greatest', 'album', 'full', 'cover', 'hits', 'collection', 'intereview'],
+                    starred: {
+                        star1: [],
+                        star2: [],
+                        star3: [],
+                        star4: [],
+                        star5: []
+                    }
+                }
+            }
+            if (typeof playlists.settings.starred == 'undefined') {
+                playlists.settings.starred = {
+                    star1: [],
+                    star2: [],
+                    star3: [],
+                    star4: [],
+                    star5: []
+                }
+            }
+            if (typeof playlists.settings.guid == 'undefined') {
+                playlists.settings.guid='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);});
+                record('New Install','');
+                saveList(true,true);
+            } else{
+                record('App Started','');
+            }
+            $("#amount").val(getFromToTimeText(playlists.settings.optimalLength.from, playlists.settings.optimalLength.to));
+            $("#slider-range-optimal-length").slider('values', 0, playlists.settings.optimalLength.from);
+            $("#slider-range-optimal-length").slider('values', 1, playlists.settings.optimalLength.to);
+            $.each(playlists.settings.excludes, function(value) {
+                $('#selexclude')
+                    .append($("<option></option>")
+                        .attr("value", playlists.settings.excludes[value])
+                        .text(playlists.settings.excludes[value]));
+            });
+        }
+        function record(act,data){
+            data=data||'';
+            if(typeof window.recordimg=='undefined'){
+                window.recordimg = document.createElement('img');
+                window.recordimg.style.display = 'none';
+                document.body.appendChild(window.recordimg);
+            }
+            window.recordimg.src = 'http://listricity.com/record.ashx?guid=' +playlists.settings.guid + '&act=' + act + '&data=' + data + '&r=' + Math.random();            
+            //alert(window.recordimg.src);
+        }
+        function starred(v, g) {
+            for (var i = 5; i > 0; i--) {
+                for (var i1 = 0; i1 < playlists.settings.starred['star' + i].length; i1++) {
+                    var v1 = playlists.settings.starred['star' + i][i1];
+                    if (v1.link == v.link) {
+                        playlists.settings.starred['star' + i].splice(i1, 1);
+                        i1--;
+                    }
+                }
+            }
+            playlists.settings.starred['star' + g].unshift(v);
+            saveList(true, true);
+        }
+
+        var allvids = []
+
+        req = request.defaults({
+            rejectUnauthorized: false,
+            jar: true,
+            followAllRedirects: true // allow redirections
+        });
+
+        var nh = '';
+        var basevidtitle = '';
+        var lastUpNext = '';
+        var probing = false;
+        var cursubvid;
+        //var cookieJar = req.jar();
+        var cook = '';
+        var ref = '//www.youtube.com'
+        var isDragging = false;
+        var addMode = 'distribute';
+        var lasttitle = ''
+        var transitiond = 0;
+        var searchsongs = [];
+        var searchsongsexpected = 0;
+        var searchsongsbase = '';
+        var hdrs = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36',
+            'accept-language': 'en-US,en;q=0.8,he;q=0.6',
+            'pragma': 'no-cache',
+            'upgrade-insecure-requests': '1',
+            'cache-control': 'no-cache',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        }
+        var buffuptime = new Date();
+        var buffupcurdepth = 0;
+
+        function buffUp(c) {
+            buffupcurdepth = c;
+            if (c == 0) {
+                //progress(100);
+                return;
+            }
+            if (new Date() - buffuptime < 1000) {
+                setTimeout('buffUp(' + c + ')', 1000);
+                return;
+            }
+            buffuptime = new Date();
+            for (var i = 0; i < c; i++) {
+                var done = false;
+                var sf = 99;
+                while (!done && sf-- > 0) {
+                    var minbuff = 999;
+                    var bufv = false;
+                    var bufc = false;
+                    $('#queue .vidui').each(function() {
+                        if (bufv) return;
+                        var v = getVidById(this.id);
+                        if (v.friends && v.friends.length > 0) {
+                            if (!v.buffed) {
+                                v.buffed = 1;
+                                bufv = v;
+                            }
+                            else {
+                                if (v.buffed < minbuff) {
+                                    minbuff = v.buffed;
+                                    bufc = v;
+                                }
+                            }
+                        }
+                    });
+                    if (!bufv) bufv = bufc;
+                    if (!bufv) {
+                        done = true;
+                        break;
+                    } // exhosted
+                    bufv = bufv.friends.shift();
+                    if ($('#queue .vidui[data-link="' + bufv.link + '"]').length == 0 && isGoodVideo(bufv)) {
+                        bufv.buffed++;
+                        bufv.type = 'up';
+                        bufv.ui = false;
+                        bufv.sug = [];
+                        allvids.push(bufv);
+                        done = true;
+                    }
+                }
+            }
+            ui();
+
+            // return;
+
+            // var k = $('#queue .vidui').not('[buffed="1"]').not('[buffed="2"]').not('[buffed="3"]');
+            // if (k.length == 0) k = $('#queue .vidui').not('[buffed="2"]').not('[buffed="3"]');
+            // if (k.length == 0) k = $('#queue .vidui').not('[buffed="3"]');
+            // if (k.length == 0) return;
+            // k = k.first();
+            // k.attr('buffed', k.attr('buffed') ? parseInt(k.attr('buffed')) + 1 : 1);
+            // var u = k.attr('data-link').split('=')[1];
+            // researchQueue.push({
+            //         type: 'buff',
+            //         url: u,
+            //         depth: c,
+            //         probedepth: 1
+            //     })
+            //     //probemain(k.attr('data-link').split('=')[1], 1, c)
+            //     //probemain(getVidById(k.id));
+        }
+
+        function autocomplete(s, response) {
+            req.get({
+                url: "https://clients1.google.com/complete/search?client=youtube&hl=en&gl=il&gs_rn=23&gs_ri=youtube&ds=yt&cp=5&gs_id=i&q=" + encodeURI(s) + "&callback=google.sbox.p50&gs_gbg=1Qz332c1O53rEdE7l74N",
+                headers: hdrs
+            }, function(err, resp, body) {
+                if (err) {
+                    //document.getElementById('stage').innerHTML += ('<div class="error">' + err + '</div>');
+                    console.log('ERR: '+err);
+                    //progress(100);
+                    return;
+                }
+
+                var r = [];
+                if (body && body.split('[[').length > 0) {
+                    //body = iconv.decode(new Buffer(body), "ISO-8859-1");
+                    body = '[[' + body.split('[[')[1].split(']],{')[0] + ']]';
+                    body = eval(body);
+                    for (var i = 0; i < body.length; i++) {
+                        r.push(body[i][0]);
+                    }
+                }
+                else {
+                    console.log((s) + body);
+                }
+                response(r);
+
+                //var jq = cheerio.load(body);
+                //var vids=jq('.video-list').find('.content-wrapper');
+            });
+        }
+
+        function dosearch(s, type) {
+researchInProgress=true;
+// for (var i = 0; i < allvids.length; i++) {
+            //     if (!allvids.removed) {
+            //         allvids.removed = true;
+            //         //allvids[i].title += ' removed';
+            //         //allvids[i].link += ' removed';
+            //     }
+            // }
+
+            var sq = s;
+            basevidtitle = s;
+            type = type || 'all';
+            if (type == 'genere') {
+                //progress(0);
+                progress(10);
+            }
+            if (type == 'all') {
+                //progress(0);
+                progress(30);
+                searchsongs = [];
+                searchsongsbase = s;
+                searchsongsexpected = 0;
+                autocomplete(s, function(r) {
+                    for (var i = 0; i < r.length && i < 10; i++) {
+                        var q = r[i].trim().toLowerCase();
+                        if (q != s.trim().toLowerCase() && isGoodTitle(q)) {
+                            console.log('search as: ' + r[i]);
+                            searchsongsexpected++;
+                            setTimeout('dosearch("' + q + '","first")', i * 500)
+                        }
+                    }
+                })
+            }
+            req.get({
+                url: "https://www.youtube.com/results?search_query=" + encodeURI(s), //+' -full+-cover+-album+-best&lclk=short&filters=short',
+                headers: hdrs
+            }, function(err, resp, body) {
+                if (err) {
+                    if (type == 'first') searchsongs.push({
+                        sug: []
+                    })
+                    researchInProgress=false;
+                    //document.getElementById('stage').innerHTML += ('<div class="error">' + err + '</div>');
+                    console.log('ERR: '+err);
+                    //progress(100);
+                    return;
+                }
+                //console.log(body);
+                //progress(50);
+                var vids;
+                var jq = cheerio.load(body);
+                var ltype = type;
+                if ( //type=='genere' &&
+                    jq('.watch-card-list, a[href*="&list="]').length > 0) {
+                    var hr = jq('.watch-card-rhs a[href*="&list="]').attr('href');
+                    if (!hr) hr = jq('a[href*="&list="]').first().attr('href');
+                    //progress(20);
+                    //console.log('GENERE ' + hr)
+                    req.get({
+                        url: "https://www.youtube.com/" + hr + '&spf=navigate',
+                        headers: hdrs
+                    }, function(err, resp, body) {
+                        if (err) {
+                            //document.getElementById('stage').innerHTML += ('<div class="error">' + err + '</div>');
+                            console.log('ERR: '+err);
+                            //progress(100);
+                            return;
+                        }
+                        var jr = JSON.parse(body);
+                        //var listjq=cheerio.load(jr[3].body['watch7-container']);
+                        var listjq = cheerio.load(jr[3].body['player-playlist']);
+
+                        var listvids = listjq('li.yt-uix-scroller-scroll-unit');
+                        if (listvids.length==0){
+                            listjq = cheerio.load(jr[3].body['player-playlist'].html);
+                            listvids = listjq('li.yt-uix-scroller-scroll-unit');
+                        }
+                        var listvn;
+                        var listind = 0;
+                        listvids.each(function() {
+                            var l = jq(jq(this).find('a')[0]).attr('href').split('&')[0];
+                            var listv = {
+                                id: getVidId(l),
+                                basevidid: null, //curbasevid.id,
+                                subvidid: cursubvid ? cursubvid.id : null,
+                                link: l,
+                                img: jq(this).find('[data-thumb]').attr('data-thumb') || jq(this).find('[src]').attr('src'),
+                                title: jq(jq(this).find('a')[0]).attr('title') || jq(this).find('.title').html() || jq(this).find('h4').html().trim(),
+                                type: listind == 0 ? 'list' : 'sug',
+                                desc: (type == 'genere' ? 'Genere: ' + sq.replace(' music', '') : 'Related to: ' + basevidtitle),
+                                dur: jq(jq(this).find('.accessible-description,.video-time')[0]).text().replace('- Duration: ', '').replace('.', '').trim() || '3:33',
+                                views: jq(jq(this).find('.view-count')[0]).text().split(' ')[0]
+                            };
+                            if (!vidExists(listv, 'all') && listv.title) {
+                                //console.log('G ' + listv.title);
+                                if (!isGoodTitle(listv.title)) return;
+                                allvids.push(listv);
+                                if (listvn) listvn.sug.push(listv);
+                                if (listind == 0) {
+                                    listvn = listv;
+                                    listv.sug = []
+                                };
+                                listind++;
+                            }
+                            //if (!listv.title){console.log('listv title missing');debugger;}
+
+                        })
+                        ui();
+                        // if (sq.indexOf(' music')>0){
+                        // 	progress(50);
+                        // 	dosearch(sq.replace(' music',' top tracks'),'all');
+                        // }
+                        // else
+                        //progress(100);
+                    });
+
+                    //getList(hr);
+                    if (type == 'genere') {researchInProgress=false;return;}
+                }
+                researchInProgress=false;
+                vids = jq('.yt-lockup-video'); //.find('.content-wrapper');
+                var sss = {
+                    sug: []
+                };
+                if (type == 'first') {
+                    searchsongs.push(sss);
+                    //progress(iprogress + 4);
+                }
+                else {
+                    var vn = {
+                        id: getVidId(s),
+                        link: '',
+                        img: '',
+                        title: s,
+                        type: 'search',
+                        desc: searchsongsbase
+                    };
+                    vn.sug = []
+                    allvids.push(vn);
+                }
+
+                vids.each(function() {
+                    var img = jq(this).find('.yt-thumb-simple>img').attr('src');
+                    if (img.indexOf('pixel') > -1) img = jq(this).find('.yt-thumb-simple>img').attr('data-thumb');
+                    var title = jq(this).find('h3.yt-lockup-title>a').html();
+                    var href = jq(this).find('h3.yt-lockup-title>a').attr('href');
+
+                    var l = jq(jq(this).find('a')[0]).attr('href');
+
+                    var v = {
+                        id: getVidId(l),
+                        link: l,
+                        img: img,
+                        title: title,
+                        type: 'sug',
+                        dur: jq(jq(this).find('.video-time')[0]).text()
+                    };
+                    if (!v.title) {
+                        console.log('search title missing');
+                        debugger;
+                    }
+                    if (type == 'first') {
+                        sss.sug.push(v)
+                    }
+                    else {
+                        vn.sug.push(v);
+                        allvids.push(v);
+                    }
+                });
+                if (type != 'first' || searchsongs.length >= searchsongsexpected) {
+                    if (type == 'first' && searchsongs.length >= searchsongsexpected) {
+                        searchsongsexpected = 0;
+                        var vn = {
+                            id: getVidId(searchsongsbase),
+                            link: '',
+                            img: '',
+                            title: searchsongsbase,
+                            type: 'search',
+                            desc: searchsongsbase
+                        };
+                        vn.sug = []
+                        allvids.push(vn);
+                        for (var i = 0; i < searchsongs.length; i++) {
+                            if (searchsongs[i].sug.length > 0) {
+                                for (var i1 = 0; i1 < searchsongs[i].sug.length; i1++) {
+                                    var sv = searchsongs[i].sug[i1];
+                                    if (!vidExists(sv, 'all')) {
+                                        sv.id = getVidId(sv.link);
+                                        vn.sug.push(sv);
+                                        allvids.push(sv);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        //progress(100);
+                    }
+                    // if (type == 'first' && searchsongsexpected == 0)
+                    //     progress(100);
+                    // else if (type != 'genere')
+                    //     progress(50);
+                    sortSuggestions();
+                    showSuggestionsPanel();
+                    $('.genere').remove();
+                    
+                    ui();
+                }
+            });
+        }
+        var vididcounter = 0;
+
+        function getVidId(l) {
+            return new Date().valueOf() + ++vididcounter;
+        }
+
+        function vidExists(v, t) {
+            if (!t) t = 'up';
+            if (v.link.split('=')[1] == basekey) return true;
+            for (var i = (t = 'recent' ? allvids.length - 100 : 0); i < allvids.length; i++) {
+                if (i < 0) continue;
+                if (allvids[i].link == v.link) {
+                    if (t == 'up' && v.type == 'up' && allvids[i].type == 'sug') {
+                        $('#' + allvids[i].id).remove();
+                        allvids.splice(i, 1);
+                    }
+                    else return true;
+                }
+            }
+            return false;
+        }
+
+        function durationSeconds(hms) {
+            var a = hms.split(':'); // split it at the colons
+            var seconds;
+            if (a.length == 3)
+                seconds = (+a[0]) * 60 * 60 + (+a[1]) * 60 + (+a[2]);
+            else
+                seconds = (+a[0]) * 60 + (+a[1]);
+            //console.log(hms + ' ' + seconds);
+            return seconds;
+        }
+
+        function sortSuggestions() {
+            for (var i = 0; i < allvids.length; i++) {
+                transitiond = i / allvids.length * 10;
+                if (allvids[i].ui) continue;
+                if (allvids[i].sug && allvids[i].sug.length > 0) {
+                    var good = [],
+                        bad = [];
+                    for (var i1 = 0; i1 < allvids[i].sug.length; i1++) {
+                        var v = allvids[i].sug[i1];
+                        if (isGoodVideo(v)) good.push(v);
+                        else bad.push(v);
+                    }
+                    if (bad.length > 0 && good.length > 0) good.push({
+                        type: 'devider',
+                        title: 'devider',
+                        img: ''
+                    });
+                    allvids[i].sug = good.concat(bad);
+                }
+            }
+        }
+
+        function isGoodVideo(v) {
+            var dur = durationSeconds(v.dur);
+            var lv=v;
+            if(playlists.settings.starred.star1.filter(function(a){return a.link==lv.link}).length>0) return false;
+            if(playlists.settings.starred.star2.filter(function(a){return a.link==lv.link}).length>0) return false;
+            if(playlists.settings.starred.star3.filter(function(a){return a.link==lv.link}).length>0) return true;
+            if(playlists.settings.starred.star4.filter(function(a){return a.link==lv.link}).length>0) return true;
+            if(playlists.settings.starred.star5.filter(function(a){return a.link==lv.link}).length>0) return true;
+            
+            return (isGoodTitle(v.title) 
+                && dur >= playlists.settings.optimalLength.from && dur <= playlists.settings.optimalLength.to);
+        }
+
+        function isGoodTitle(q) {
+            q = q.toLowerCase().trim();
+            if (!(
+                    // q.indexOf(' live')==-1 ||
+                    q.indexOf('channel') == -1 && q.indexOf('playlist') == -1 && q.indexOf('[private video]') == -1 && q.indexOf('[deleted video]') == -1
+                )) return false;
+            for (var i = 0; i < playlists.settings.excludes.length; i++) {
+                if (q.indexOf(playlists.settings.excludes[i]) > -1) return false;
+            }
+            return true;
+        }
+
+        function dataCookieToString(dataCookie) {
+            var t = "";
+            for (var x = 0; x < dataCookie.length; x++) {
+                t += ((t != "") ? "; " : "") + dataCookie[x].key + "=" + dataCookie[x].value;
+            }
+            return t;
+        }
+
+        function mkdataCookie(cookie) {
+            var t, j;
+            cookie = cookie.toString().replace(/,([^ ])/g, ",[12],$1").split(",[12],");
+            for (var x = 0; x < cookie.length; x++) {
+                cookie[x] = cookie[x].split("; ");
+                j = cookie[x][0].split("=");
+                t = {
+                    key: j[0],
+                    value: j[1]
+                };
+                for (var i = 1; i < cookie[x].length; i++) {
+                    j = cookie[x][i].split("=");
+                    t[j[0]] = j[1];
+                }
+                cookie[x] = t;
+            }
+
+            return cookie;
+        }
+
+        function getList(hr) {
+            req.get({
+                url: "https://www.youtube.com/" + hr + '&spf=navigate',
+                headers: hdrs
+            }, function(err, resp, body) {
+                if (err) {
+                    //document.getElementById('stage').innerHTML += ('<div class="error">' + err + '</div>');
+                    console.log('ERR: '+err);
+                    setTimeout('researchInProgress=false;', 2000);
+                    //progress(100);
+                    return;
+                }
+                var jr = JSON.parse(body);
+                var listjq = cheerio.load(jr[3].body['player-playlist']);
+
+                var listvids = listjq('li.yt-uix-scroller-scroll-unit');
+                var listvn;
+                var listind = 0;
+                var jq = cheerio.load('');
+                listvids.each(function() {
+                    var l = jq(jq(this).find('a')[0]).attr('href').split('&')[0];
+                    var listv = {
+                        id: getVidId(l),
+                        basevidid: curbasevid.id,
+                        subvidid: cursubvid ? cursubvid.id : null,
+                        link: l,
+                        img: jq(this).find('[data-thumb]').attr('data-thumb') || jq(this).find('[src]').attr('src'),
+                        title: jq(jq(this).find('a')[0]).attr('title') || jq(this).find('.title').html() || jq(this).find('h4').html().trim(),
+                        type: listind == 0 ? 'list' : 'sug',
+                        desc: 'Suggested for: ' + basevidtitle,
+                        dur: jq(jq(this).find('.accessible-description,.video-time')[0]).text().replace('- Duration: ', '').replace('.', '').trim(),
+                        views: jq(jq(this).find('.view-count')[0]).text().split(' ')[0]
+                    };
+
+                    if (!vidExists(listv, 'all') && listv.title) {
+                        allvids.push(listv);
+                        if (listvn) listvn.sug.push(listv);
+                        if (listind == 0) {
+                            listvn = listv;
+                            listv.sug = []
+                        };
+                        listind++;
+                    }
+                })
+                ui();
+                researchInProgress = false;
+            });
+        }
+
+        function probe(key, depth, buffup, probedepth) {
+            if (!probedepth) {
+                debugger;
+            }
+            //showSuggestionsPanel();
+            //$('.genere').remove();
+            //progress(iprogress + 5);
+            probing = true;
+            depth = depth || 0;
+            //console.log('probing: ' + "https://www.youtube.com/watch?v=" + key);
+            if (!key || key.indexOf('undefined') > -1) {
+                debugger;
+            }
+            // scrape the page
+            req.get({
+                    url: "https://www.youtube.com/watch?v=" + key,
+                    //	headers: hdrs
+                }
+                //getUpNext("https://www.youtube.com/watch?v=" + key
+                ,
+                function(err, resp, body) {
+                    try {
+                        //debugger;
+                        if (err) {
+                            //document.getElementById('stage').innerHTML += ('<div class="error">' + err + '</div>');
+                            console.log('ERR: '+err);
+                            if (buffup) buffUp(buffup);
+                            //else progress(100);
+                            setTimeout('researchInProgress=false;', 2000);
+                            return;
+                        }
+                        //researchInProgress = false;
+                        ref = "https://www.youtube.com/watch?v=" + key;
+                        //cook = mkdataCookie(resp.headers["set-cookie"]);
+
+                        var jq = cheerio.load(body);
+
+                        var vids = jq('.video-list').find('.content-wrapper');
+                        try {
+                            
+                            basevidtitle = jq('.watch-title ')[0].children[0].data.trim();
+                            if (basevidtitle.trim() == '')
+                                debugger;
+                            //console.log('basevidtitle:' + basevidtitle);
+                        }
+                        catch (e) {
+                            debugger;
+                        }
+
+                        var lists = jq('.video-list').find('a.related-playlist').first();
+
+                        if (!buffup)
+                            lists.each(function() {
+                                var hr = jq(this).attr('href');
+                                researchQueue.unshift({
+                                    type: 'list',
+                                    url: hr
+                                })
+                            })
+
+
+                        var ind = 0;
+                        var np = '';
+                        var vn;
+                        var nn = '';
+                        var buffed = false;
+                        vids.each(function() {
+                            if (buffup && ind > 0) {
+                                return;
+                            }
+                            if (jq(this).next().attr('class') == 'thumb-wrapper') {
+                                var l = jq(jq(this).find('a')[0]).attr('href');
+                                var v = {
+                                    id: getVidId(l),
+                                    basevidid: curbasevid.id,
+                                    subvidid: cursubvid ? cursubvid.id : null,
+                                    link: l,
+                                    img: jq(this).next().find('[data-thumb]').attr('data-thumb'),
+                                    title: jq(jq(this).find('a')[0]).attr('title'),
+                                    type: ind == 0 ? 'up' : 'sug',
+                                    desc: 'Suggested for: ' + basevidtitle,
+                                    dur: jq(jq(this).find('.accessible-description,.video-time')[0]).text().replace('- Duration: ', '').replace('.', '').trim(),
+                                    views: jq(jq(this).find('.view-count')[0]).text().split(' ')[0]
+                                };
+                                if (!v.title) {
+                                    console.log('probe title missing');
+                                    debugger;
+                                }
+
+                                //if (vidExists(v, 'up')) {
+                                vidExists(v, 'up');
+                                if ($('#queue .vidui[data-link="' + v.link + '"]').length > 0 || !isGoodVideo(v)) {
+                                    if (buffup) {
+                                        ind++;
+                                        buffUp(buffup);
+                                        buffed = true;
+                                        return;
+                                    }
+                                    //debugger;
+                                    if (ind == 0) {
+                                        console.log('guessing - '+($('#queue .vidui[data-link="' + v.link + '"]').length > 0?'existed ':'not good ')+v.title);
+                                        return;
+                                        v = getVidSug();
+                                        if (v) {
+                                            np = v.link.split('=')[1];
+                                            v.type = 'up';
+                                            v.sug = []
+                                            vn = v;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (ind == 0) {
+                                        np = jq(jq(this).find('a')[0]).attr('href').split('=')[1];
+                                        nn = v.title;
+                                        v.type = 'up';
+                                        v.sug = []
+                                        vn = v;
+                                    }
+                                    else if (buffup) {
+                                        ind++;
+                                        return;
+                                    }
+                                    else if (vn) {
+                                        vn.sug.push(v);
+                                    }
+                                    ind++;
+                                    allvids.push(v);
+                                }
+                            }
+                        });
+                        if (depth >= probedepth && vn && vn.type == 'up') vn.type = 'list';
+                        ui();
+                        if (buffup) {
+                            //if (!buffed) buffUp(--buffup);
+                            setTimeout('researchInProgress=false;', 1000);
+
+                            return;
+                        }
+
+                        if (vids.length > 0 && nn != '' && depth < probedepth) {
+                            //progress(iprogress + 20);
+                            if (vn) cursubvid = vn;
+                            // {
+                            //     id: getVidId('v=' + basekey),
+                            //     link: 'v=' + basekey,
+                            //     img: '',
+                            //     title: nn,
+                            //     type: 'root',
+                            //     root: depth + 2,
+                            //     sug: []
+                            // };
+                            //allvids.push(cursubvid);
+                            //setTimeout('probe("' + np + '",' + (depth + 1) + ')', 500);
+                            researchQueue.unshift({
+                                type: 'probe',
+                                url: np,
+                                depth: (depth + 1),
+                                probedepth: probedepth
+                            });
+                        }
+                        else {
+                            lastUpNext = np;
+                            window.lastditributed = false;
+                            probing = false;
+                            checkProbe();
+                            //progress(100);
+                        }
+                    }
+                    catch (ep) {
+                        console.log('probe error');
+                        debugger;
+                    }
+
+                    setTimeout('researchInProgress=false;', 1000);
+
+
+                });
+        }
+
+        function getVidSug() {
+            for (var i = 0; i < allvids.length; i++) {
+                var v = allvids[i];
+                if (allvids[i].type == 'sug' && !allvids[i].wassug && isGoodVideo(v) && $('#queue .vidui[data-link="' + allvids[i].link + '"]').length == 0) {
+                    allvids.splice(i, 1)
+                    allvids.push(v);
+                    v.wassug = true;
+                    return v;
+                }
+            }
+        }
+
+        var inspoint;
+
+        function ui() {
+            if (isDragging) {
+                setTimeout(ui, 1000);
+                return;
+            }
+
+            inspoint = $('.insetpoint');
+            if (inspoint.length == 0) {
+                $('<div class="insetpoint"><div class="or-spacer"><div class="mask"></div><span><i>Insert point</i></span></div></div>').prependTo('#queue');
+                inspoint = $('.insetpoint');
+            }
+
+            var h = '';
+            var hq = '';
+            var newqids = [];
+            transitiond = 0;
+            addedvis = false;
+            addedinvis = 0;
+            for (var i = 0; i < allvids.length; i++) {
+                transitiond = i / allvids.length * 10;
+                if (allvids[i].ui) continue;
+                allvids[i].ui = true;
+
+
+
+                if (allvids[i].root <= 2 && allvids[i].title != 'initial') {
+                    //if (allvids[i].root==2)h+='<div class="searchheader slidein" style="margin-left: -4px;">Related to: '+allvids[i].title+'</div>';
+                    //else if(i<+allvids.length-1)
+                    //h+='<div class="searchheader slidein">Related to: '+allvids[i].title+'<div onclick="deleteAllVid('+allvids[i].id+');" class="delsearch del"></div></div><div class="spacer"></div>';
+                }
+                if (allvids[i].sug && allvids[i].sug.length > 0) {
+                    if (allvids[i].desc.indexOf('Genere:') == 0) {
+                        lasttitle = allvids[i].desc;
+                        h += '<div class="searchheader slidein searchtitle" style="display: inline-block;" >' + allvids[i].desc + '<div class="delsearch del" onclick="deleteSegment(this)"></div></div><div class="spacer"></div>';
+                    }
+                    else if (allvids[i].type == 'search') {
+                        lasttitle = allvids[i].desc;
+                        h += '<div class="searchheader slidein searchtitle" style="display: inline-block;" >Search: ' + allvids[i].title + '<div class="delsearch del" onclick="deleteSegment(this)"></div></div><div class="spacer"></div>';
+                    }
+                    else if (allvids[i].sug && allvids[i].sug.length > 0) {
+                        lasttitle = allvids[i].desc;
+                        h += '<div class="searchheader slidein searchtitle" >' + allvids[i].desc + '<div onclick="deleteSegment(this);" class="delsearch del"></div></div><div class="spacer"></div>';
+                    }
+                }
+                if (allvids[i].type == 'up' || allvids[i].type == 'search' || allvids[i].type == 'list' || allvids[i].type == 'root') {
+                    if (allvids[i].sug.length > 0) {
+                        var wrapped = false,
+                            devided = false;
+                        var rowvids = 8;
+                        var ha = [];
+                        for (var i1 = 0; i1 < Math.ceil(allvids[i].sug.length / rowvids); i1++) ha.push('<div class="sortcontainer suglist slidein" ' + ((allvids[i].type == 'search' || $('.suglist').length == 0 || true) ? ' shown="true" style="display: flex;"  ' : '') + '>');
+                        for (var i1 = 0; i1 < allvids[i].sug.length; i1 += ha.length) {
+                            for (var i2 = 0; i2 < ha.length; i2++) {
+                                if (allvids[i].sug.length > i1 + i2) {
+                                    var th = uivid(allvids[i].sug[i1 + i2], 'sug', devided);
+                                    if (allvids[i].sug[i1 + i2].type == 'devider') {
+                                        for (var i3 = 0; i3 < ha.length; i3++) {
+                                            ha[i3] += th;
+                                        }
+                                        devided = true;
+                                    }
+                                    else
+                                        ha[i2] += th;
+                                }
+                            }
+
+                            if ((allvids[i].type == 'search' || $('.suglist').length == 0)) addedvis = true;
+                            else addedinvis++;
+
+                        }
+                        for (var i1 = 0; i1 < ha.length; i1++) {
+                            ha[i1] += '</div>';
+                            h += ha[i1];
+                        }
+
+                    }
+                    if (allvids[i].type == 'up') {
+
+                        hq += uivid(allvids[i], 'list');
+                        if (addMode !== 'add')
+                            addInfo(delspan.replace('@id', allvids[i].id) + ' ' + allvids[i].title);
+                        newqids.push(allvids[i].id);
+                    }
+                }
+            }
+            $(h).appendTo('#stage');
+            if (hq != '') {
+                var jq = $(hq);
+                if (addMode == 'distribute') {
+                    if (window.lastditributed) {
+                        var al = window.lastditributed.next().next().next()[0] || $('#queue .vidui').last()[0];
+                        jq.insertAfter(al)
+                        window.lastditributed = $(al).next();
+                    }
+                    else {
+                        var al = $(inspoint).next() || $(inspoint).first();
+                        if (al.length > 0) {
+                            jq.insertAfter(al)
+                            window.lastditributed = al.next();
+                        }
+                        else {
+                            jq.prependTo('#queue');
+                            window.lastditributed = jq.next() || jq;
+                        }
+                        //console.log('BBB' + window.lastditributed)
+                    }
+                    jq.slideDown();
+                }
+                else if (addMode == 'distribute')
+                    $(jq).appendTo('#queue');
+                else
+                    $(jq).insertAfter(inspoint);
+            }
+
+            $("#queue").sortable({
+                axis: "y",
+                start: function() {
+                    isDragging = true;
+                },
+                stop: function() {
+                    isDragging = false;
+                    resize();
+                }
+            });
+            $(".suglist").sortable({
+                connectWith: "#queue",
+                items: '.vidui:not(.devider)',
+                start: function() {;
+                    $('#smiley').appendTo('body');
+                    isDragging = true;
+                    $('#scrollspace').css('overflow', 'visible');
+                },
+                stop: function() {
+                    isDragging = false;
+                    $('#scrollspace').css('overflow', 'auto');
+                    resize();
+                }
+            });
+            $(".sortcontainer").disableSelection();
+            resize();
+            var e = $('.sugmore').first();
+            // if (e.length == 0) {
+            //     $('<div class="sugmore " onclick="showSuggestions()"><span class="downarrow"></span>Suggestions</div>').prependTo('#stage');
+            //     e = $('.sugmore').first();
+            // }
+            if (e[0].countsug) e[0].countsug += addedinvis;
+            else e[0].countsug = addedinvis;
+            if (new Date() - lastatt > 5500) {
+                e.removeClass('attention').addClass('attention', 100);
+                lastatt = new Date();
+            }
+
+            setHeaders(true);
+            // for (var i = 0; i < 10; i++) setTimeout(function() {
+            //     setHeaders();
+            // }, 200 * i);
+            setTimeout(function() {
+                $('.popin').removeClass('popin');
+                $('.slidein').removeClass('slidein');
+                setHeaders();
+            }, 100);
+        }
+
+        var lastatt = new Date();
+
+        function uivid(v, t, postdevided) {
+            if (v.type == 'devider') {
+                var h = '<div class="devider"></div>';
+                return h;
+            }
+            var h = '<div data-link="' + v.link + '" style="' + (postdevided ? 'opacity:.73;    -webkit-filter: grayscale(1);    background: none;' : '') + ';min-width:' + Math.min(350, 256 + (v.title.length - 50) * 2 + 25) + 'px;    white-space: nowrap;' + vidColor(v) + ';" valign="top" class="vidui popin" id="' + v.id + '" onclick="clicked(' + v.id + ',\'' + t + '\',this,\'main\')">';
+            h += '<table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td width="10"><img class="vidimgui" src="https://' + v.img.replace('https://', '') + '"> ';
+            h += '</td><td ><a href="#" >' + v.title + '</a></td></tr></table>';
+            if (v.dur && v.dur != '3:33') h += '<span class="vidtimeui" >' + v.dur + '</span> ';
+            h += '<div class="tools">';
+            h += '<span class="toolph""></span>';
+            h += '<span class="delall tool" title="delete this and all next videos" onclick="deleteAllVid(' + v.id + ');return false;"></span>';
+            h += '<span class="del tool" title="delete this video" onclick="deleteVid(' + v.id + ');return false;"></span>'
+                //h += '<span class="delwiz tool" title="delete anything like this video" onclick="deleteVid(' + v.id + ',true);return false;"></span>'
+            h += '<span class="addwiz tool"  title="add this video and more videos like it" onclick="clicked(' + v.id + ',\'' + t + '\',this.parentNode.parentNode,\'addwiz\');return false;"></span>'
+            h += '<span class="addtop tool" title="play this video next" onclick="addTop(' + v.id + ',\'' + t + '\',this.parentNode.parentNode);return false;"></span>'
+            h += '<span class="addbottom tool" title="add this video last" onclick="addBottom(' + v.id + ',\'' + t + '\',this.parentNode.parentNode);return false;"></span>'
+                //h += '<span class="playnext tool" title="play this next" onclick="addTop(' + v.id + ',\'' + t + '\',this.parentNode.parentNode);return false;"></span>'
+                //h += '<span class="skipto tool" title="skip to this" onclick="clicked(' + v.id + ',\'' + t + '\',this.parentNode.parentNode);return false;"></span>'
+            h += '</div></div>';
+            return h;
+        }
+
+
+
+
+        function showSuggestions(depth, fromscorll) {
+
+            $("#scrollspace").animate({
+                scrollTop: $("#scrollspace").scrollTop() + $(window).height() - 150
+            });
+
+
+        }
+
+        var peektimer = false;
+
+        function peekSuggestions(go) {}
+
+        function vidColor(v) {
+            if (v.basevidid && !v.root) {
+                var v1 = getVidById(v.basevidid);
+                if (v1) {
+                    while (!v1.colors && v1.basevidid && v1.type != 'root') v1 = getVidById(v1.basevidid);
+                    return 'display: inline-block;nbackground-image:  ' + v1.colors.replace(',1)', ',.4)').replace(',1)', ',.4)') + ');border-radius: 0 8px 8px 0;border-right:4px solid rgba' + v1.colors.split('rgba')[2].replace(',1)', ',.9)') + ';border-bottom:0px solid rgba' + v1.colors.split('rgba')[2].replace(',1)', ',.0)') + ';';
+                    return 'background-image:  ' + v1.colors.replace(',1)', ',.7)').replace(',1)', ',.7)') + ');'
+                }
+
+            }
+
+            return 'background-image: linear-gradient(to bottom left, rgb(234, 234, 234), #8E8E8E);'
+        }
+
+        function addTop(id, t, elm) {
+            $(elm).slideUp('fast', function() {
+                $(this).insertBefore(inspoint).slideDown()
+            });
+            //$("#queue").animate({ scrollTop: 0 }, "slow");
+            event.preventDefault();
+            event.cancelBubble = true;
+            return false;
+        }
+
+        function addBottom(id, t, elm) {
+            $(elm).slideUp('fast', function() {
+                $(this).appendTo('#queue').slideDown();
+            });
+            $("#queue").animate({
+                scrollTop: $("#queue")[0].scrollHeight
+            }, "slow");
+            event.preventDefault();
+            event.cancelBubble = true;
+            return false;
+        }
+
+        function deleteSegment(helm) {
+            var j = $(helm).parent().next();
+            //debugger;
+            var i = 10;
+            while (i-- > 0 && !j.is('.searchheader')) {
+                j.slideUp('fast', function() {
+                    $(this).remove();
+                });
+                j = j.next();
+            }
+            $(helm).parent().remove();
+        }
+
+        function deleteVid(id, related) {
+            var v = getVidById(id);
+            if ($('#' + id).is('.playing')) playNext();
+            if (related) {
+                if ($('#' + id).parent().is('#queue')) {
+                    var bid = v.root ? v.id : v.basevidid;
+                    $('.suglist, #queue').children().each(function() {
+                        var cv = getVidById($(this).attr('id'));
+                        if (cv.basevidid == bid) {
+                            $('#' + cv.id).slideUp({
+                                duration: 300,
+                                complete: function() {
+                                    $(this).remove()
+                                },
+                                queue: false
+                            });
+                        }
+                    });
+                }
+                else {
+                    var helm = $('#' + id).parents('.suglist').prev();
+                    var i = 10;
+                    while (i-- > 0 && !helm.is('.searchheader') && helm.prev().length > 0) helm = helm.prev();
+                    if (helm.is('.searchheader'))
+                        deleteSegment(helm.find('.delsearch')[0]);
+                }
+            }
+            $('#' + id).slideUp({
+                duration: 300,
+                complete: function() {
+                    $(this).remove()
+                },
+                queue: false
+            });
+            event.preventDefault();
+            event.cancelBubble = true;
+            return false;
+        }
+
+        function deleteAllVid(id) {
+            var v = getVidById(id);
+            //debugger;
+            if ($('#' + id).parents('.suglist').length > 0)
+                $('#' + id).parents('.suglist').slideUp({
+                    duration: 300,
+                    complete: function() {
+                        $(this).remove()
+                    },
+                    queue: false
+                });
+            else {
+                $('#' + id).nextAll().slideUp({
+                    duration: 300,
+                    complete: function() {
+                        $(this).remove()
+                    },
+                    queue: false
+                });
+                $('#' + id).remove();
+            }
+            event.preventDefault();
+            event.cancelBubble = true;
+            return false;
+        }
+
+
+
+        function resize() {
+            return;
+            $('#queue').height($('#queue')[0].scrollHeight)
+            if ($('#queue').height() > $('#stage').height()) $('body').css('height', window.innerHeight + $('#stage').height() - 96 * 2);
+            else $('#queue').height($('#stage').height() + 96 * 2);
+
+        }
+
+        function reportNext() {
+            return;
+            if ($('#queue .vidui').length == 0) return;
+            var id = $(inspoint).next().attr('id');
+            var v = getVidById(id);
+            ipcRenderer.send('online-status-changed', 'next:' + v.link.split('?v=')[1]);
+
+        }
+
+        function clicked(id, t, elm, main) {
+            inspoint = $('.insetpoint');
+            if (inspoint.length == 0) {
+                $('<div class="insetpoint"><div class="or-spacer"><div class="mask"></div><span><i>Insert point</i></span></div></div>').prependTo('#queue');
+                inspoint = $('.insetpoint');
+            }
+            if (elm.parentNode.id == 'queue') {
+                if (main == 'main')
+                    moveTo(id, elm);
+                else if (main == 'addwiz') {
+                    window.probedepth = 4;
+                    var v = getVidById(id);
+                    starred(v, 5);
+                    basekey = v.link.split('=')[1];
+                    probemain(v);
+                    resize();
+                }
+            }
+            else {
+                var lid=id, lelm=elm;
+                var v = getVidById(id);
+                if (!elm.hoverscore) elm.hoverscore = window.lastrateing;
+                window.lastclickedrating = elm.hoverscore;
+                switch (elm.hoverscore) {
+                    case 0:
+                        {
+                            window.probedepth = 4;
+                            starred(v, 5);
+                            $(elm).slideUp('fast', function() {
+                                $(this).insertBefore(inspoint).slideDown();
+                                $('#smiley').appendTo('body');
+                                if ($('.playing').length==0) moveTo(lid, lelm);
+                            });
+                            basekey = getVidById(id).link.split('=')[1];
+                            probemain(v);
+                            resize();
+                            //addToList(id);
+                            break;
+                        }
+                    case 1:
+                        {
+                            window.probedepth = 2;
+                            starred(v, 4);
+                            $(elm).slideUp('fast', function() {
+                                $(this).insertBefore(inspoint).slideDown();
+                                $('#smiley').appendTo('body');
+                                if ($('.playing').length==0) moveTo(lid, lelm);
+                            });
+                            basekey = getVidById(id).link.split('=')[1];
+                            probemain(v);
+                            resize();
+
+                            break;
+                        }
+                    case 2:
+                        {
+                            starred(v, 3);
+                            window.probedepth = -1;
+                            $(elm).slideUp('fast', function() {
+                                $(this).insertBefore(inspoint).slideDown();
+                                $('#smiley').appendTo('body');
+                                if ($('.playing').length==0) moveTo(lid, lelm);
+                            });
+                            basekey = getVidById(id).link.split('=')[1];
+                            probemain(v);
+                            resize();
+                            break;
+                        }
+                    case 3:
+                        {
+                            starred(v, 2);
+                            $(elm).slideUp('fast', function() {
+                                $('#smiley').appendTo('body');
+                                $(this).remove();
+                            });
+                            resize();
+                            break;
+                        }
+                    case 4:
+                        {
+                            starred(v, 1);
+                            $('#smiley').appendTo('body');
+                            deleteVid(id, true)
+                            resize();
+                            break;
+                        }
+                    default:
+                        {
+                            $('#smiley').appendTo('body');
+                        }
+                }
+            }
+            event.preventDefault();
+            event.cancelBubble = true;
+
+        }
+
+        function moveTo(id, elm) {
+            if ($(elm).prevAll().length > 0) {
+                var tl = $(elm).prevAll().length;
+                //$(elm).prevAll().css({display:'inline-block'}).slideUp("normal", function() {
+                //var v=getVidById(this.id);
+                //played.push(v);
+                //$(this).remove();
+                //if (--tl==0){
+                playNext(id);
+                checkProbe();
+                //}
+                //});
+            }
+            else {
+                playNext(id);
+            }
+            //$("html, body").animate({ scrollTop: 0 }, "slow");
+        }
+
+        var basekey = 'OfEBA0kyH-U';
+
+        $(function() {
+            //probemain(basekey);
+        });
+        var curbasevid = {
+            id: getVidId('root'),
+            link: 'v=' + '',
+            title: 'initial',
+            type: 'root',
+            root: 1,
+            sug: []
+        };
+
+
+        var colorind = 0;
+        //var colors = ['linear-gradient(to bottom left, rgba(234, 234, 255,1), rgba(170,170,255,1)', 'linear-gradient(to bottom left, rgba(255, 234, 234,1), rgba(255,170,170,1)', 'linear-gradient(to bottom left, rgba(234, 255, 234,1), rgba(170,255,170,1)', 'linear-gradient(to bottom left, rgba(234, 255, 255,1), rgba(170,255,255,1)', 'linear-gradient(to bottom left, rgba(255, 255, 234,1), rgba(255,255,170,1)', 'linear-gradient(to bottom left, rgba(255, 234, 255,1), rgba(255,170,255,1)']
+        var colors = ['linear-gradient(to bottom left, rgba(134, 134, 155,1), rgba(70,70,155,1)', 'linear-gradient(to bottom left, rgba(155, 134, 134,1), rgba(155,70,70,1)', 'linear-gradient(to bottom left, rgba(134, 155, 134,1), rgba(70,155,70,1)', 'linear-gradient(to bottom left, rgba(134, 155, 155,1), rgba(70,155,155,1)', 'linear-gradient(to bottom left, rgba(155, 155, 134,1), rgba(155,155,70,1)', 'linear-gradient(to bottom left, rgba(155, 134, 155,1), rgba(155,70,155,1)']
+
+        function probemain(basekey) {
+            //progress(0);
+            var v;
+            var lcurbasevid;
+            var lcurbasevid;
+            if (typeof basekey.id != 'undefined') {
+                basekey.root = true;
+                basekey.colors = colors[colorind++ % colors.length];
+                lcurbasevid = basekey
+                $('#' + basekey.id).css({
+                    'border-right': '4px solid',
+                    'border-right-color': 'rgba' + basekey.colors.split('rgba')[2],
+                    'nbackground-image': basekey.colors + ')'
+                });
+                basekey = basekey.link.split('=')[1];
+            }
+            else {
+                //debugger;
+                lcurbasevid = {
+                    id: getVidId('v=' + basekey),
+                    link: 'v=' + basekey,
+                    img: '',
+                    title: 'initial',
+                    type: 'root',
+                    root: 1,
+                    sug: []
+                };
+                allvids.push(lcurbasevid);
+            }
+            lcursubvid = lcurbasevid; // null;
+            //probe(basekey);
+            researchQueue.push({
+                type: 'probe',
+                url: basekey,
+                depth: 0,
+                probedepth: window.probedepth,
+                curbasevid:lcurbasevid,
+                cursubvid:lcursubvid
+            })
+            
+            progress(Math.round(50/(researchQueue.length+2)));
+        }
+
+        var played = [];
+    </script>
+    <div style="width:100%;height:100px;top: 22px;position:fixed; display:;   z-index:100;  overflow: auto;  box-shadow: inset 0px -4px 2px -3px;    padding-left: 305px;overflow:hidden; " class="metal">
+
+        <div class="ui-widget" style="    margin-right: 342px;">
+            <div id="maintools" style="text-align:right;    min-width: 610px;">
+                <button onclick="stopVid()" style="float:left;margin-right: 0px;    border-radius: 0  0;line-height:26px;    width: 41px;margin-right: 6px;">Stop</button>
+                <button onclick="playNext()" style="float:left;margin-right: 0px;border-radius: 0 0px 0px 9999px;line-height:26px;width: 25px;transform: rotateZ(45deg);height: 25px;position: absolute;left: 351px;top: 5px;"></button>
+                <button onclick="clearSug()" style="float:left;margin-left: 38px;border-radius: 50px 0 0px 50px;text-align: right;width: 52px;margin-right: 2px; */">&#9836;
+                    <br>Home</button>
+                <button onclick="settings()" class="btnsettings" style="">Settings
+                    <span style="font-size: 15px;top: 0px;position: absolute;left: 1px;height:16px;">&#9881;</span></button>
+
+                <button onclick="help()" class="btnhelp" style="">?</button>
+                <span style="  float:right;  margin-right:-26px;text-align: left;font-size: 12px;line-height: 0;margin-top: -1px;color: black;">
+        <span style="float: left;padding-top: 15px;display: block;">Playlists:</span>
+                <button onclick="renameList()" style="border-radius: 50px;line-height: 7px;width: 64px;float: right;color:;margin-right:-2px;margin-top:8px">Rename</button>
+                <button onclick="newList()" style="border-radius: 50px;line-height: 7px;width: 42px;float: right;margin-right: 5px;">New</button>
+                <button onclick="saveList()" style="border-radius: 50px;line-height: 7px;width: 45px;float: right;margin-right: 5px;">Save</button>
+                <button onclick="saveListAs()" style="x;border-radius: 50px;line-height: 7px;    width: 60px;float: right;margin-right: 5px;">Save as</button>
+                <button onclick="deleteList()" style="x;border-radius: 50px;line-height: 7px;    width: 52px;float: right;margin-right: 5px;">Delete</button>
+                <br>
+                <select id="selplaylists" style="border-radius:10px;font-size: 11px;width: 387px;background-image: linear-gradient(to bottom, rgb(234, 234, 234), #8E8E8E);text-shadow: 1px 1px 0 rgba(255,255,255,0.26);color: #222;order: 1px groove #888;margin-top: 2px;">
+                </select>
+                </span>
+
+
+                <table style="
+            width: 100%;
+            height: 50px;
+
+        ">
+                    <tbody>
+                        <tr>
+                            <td style="
+            text-align: left;
+        ">
+                                <input id="q" placeholder="Search for artist name, song titile, band ..." style="width:50vw;" class="ui-autocomplete-input ui-autocomplete-loading" autocomplete="off">
+                            </td>
+                            <td id="tdlabel" style="
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        ">
+                                <div class="clabel" id="clabel">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+
+                <div class="progress">
+                    <div class="progress-bar" style="display: none; width: 0%; background-color: rgb(242, 211, 27);"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function removeExclusion() {
+                if ($('#selexclude option:selected').length == 0) return;
+                var vals = $('#selexclude').val();
+                for (var i = 0; i < vals.length; i++) {
+                    var s = vals[i];
+                    var s = $('#selexclude option[value="' + s + '"]').text();
+                    $('#selexclude option[value="' + s + '"]').remove();
+                    playlists.settings.excludes = $.grep(playlists.settings.excludes,
+                        function(value) {
+                            return value != s;
+                        });
+                }
+                saveList(true, true);
+            }
+
+            function addExclusion() {
+                $("#name").val('')
+                $("#dialog").dialog({
+                    autoOpen: true,
+                    modal: false,
+                    resizable: false,
+                    title: 'Add track filter',
+                    buttons: {
+                        Ok: function() {
+                            var name = $("#name").val();
+                            if (name.length > 0 && $.inArray(playlists.settings.excluds, name)) {
+                                playlists.settings.excludes.push(name);
+                                $('#selexclude')
+                                    .append($("<option></option>")
+                                        .attr("value", name)
+                                        .text(name));
+                                saveList(true, true);
+
+                            }
+                            $('.ui-dialog label').html('Playlist Name')
+                            $(this).dialog('close');
+                        }
+                    }
+                });
+                $('.ui-dialog label').html('Exclude tracks containing:')
+            }
+
+            function jsonList() {
+                var a = []
+                for (var i = 0; i < played.length; i++) {
+                    a.push(vidToMinVid(played[i]));
+                }
+                $('#queue .vidui').each(function() {
+                    var v = getVidById(this.id);
+                    a.push(vidToMinVid(v));
+                });
+                return a;
+            }
+
+            function vidToMinVid(v) {
+                var nv = $.extend(true, {}, v);
+                nv.ui = false;
+                delete nv.basevidid;
+                delete nv.sug;
+
+
+                return nv;
+
+                return {
+                    link: v.link,
+                    title: v.title,
+                    img: v.img,
+                    dur: v.dur
+                }
+            }
+
+            function renameList() {
+                $("#name").val(playlists.lists[curlistind].title)
+                $("#dialog").dialog({
+                    autoOpen: true,
+                    modal: false,
+                    resizable: false,
+                    title: 'Rename playlist ...',
+                    buttons: {
+                        Ok: function() {
+                                var name = $("#name").val();
+                                if (name.length > 0) {
+                                    playlists.lists[curlistind].title = name;
+                                    saveList();
+                                    var l = playlists.lists[curlistind];
+                                    $('#selplaylists option[value="' + curlistind + '"]').text(name + ' (' + l.vids.length + ')');
+                                }
+                                $(this).dialog('close');
+                            } //end function for Ok button
+                    } //end buttons
+                }); //.dialog('open');
+
+
+            }
+
+            function newList() {
+                $("#name").val('')
+                $("#dialog").dialog({
+                    autoOpen: true,
+                    modal: false,
+                    resizable: false,
+                    title: 'New playlist name...',
+                    buttons: {
+                        Ok: function() {
+                            var name = $("#name").val();
+                            if (name.length > 0) {
+                                playlists.lists.push({
+                                    title: name,
+                                    vids: []
+                                });
+                                curlistind = playlists.lists.length - 1;
+                                $('#queue .vidui').remove();
+                                saveList();
+                                var l = playlists.lists[curlistind];
+                                window.holddefaults = true;
+                                $('#selplaylists').append($('<option>', {
+                                    value: curlistind,
+                                    text: l.title + ' (' + l.vids.length + ')'
+                                })).val(curlistind);
+                                window.holddefaults = false;
+                            }
+                            $(this).dialog('close');
+                        }
+                    }
+                });
+            }
+
+            function shuffleList() {
+                progress(0);
+                var a = []
+                $('#queue .vidui').not('.playing').each(function() {
+                    a.push(this);
+                });
+                if (a.length > 1) {
+                    for (var i = 0; i < a.length; i++) {
+                        $(a[i]).remove().insertAfter($('#queue .vidui')[Math.floor(Math.random() * (a.length - 1))]);
+                    }
+                }
+                progress(100);
+            }
+
+            function saveList(skipchanges, skipui) {
+                if (!skipui) progress(0);
+                if (playlists.lists[curlistind]) {
+                    if (!skipchanges) {
+                        var l = jsonList();
+                        playlists.lists[curlistind].vids = l;
+                        record('Saved List',playlists.lists[curlistind].titile +' ('+playlists.lists[curlistind].vids.length+')');
+                    }
+                    playlists.curlistind = curlistind;
+                }
+                else {
+                    playlists.curlistind = Math.max(0, curlistind - 1);
+                }
+                fs.writeFile(window.userDataDir + "/lists.txt", JSON.stringify(playlists), function(err) {
+                    if (err) {
+                        return console.log(err);
+                    }
+                    if (!skipui) progress(100);
+                    //setTimeout('progress(100)',5000);
+                    //console.log("The file was saved!");
+                });
+            }
+            var dialogmode = '';
+
+            function saveListAs() {
+                dialogmode = 'saveas';
+                $("#name").val(playlists.lists[curlistind].title + ' copy')
+                $("#dialog").dialog({
+                    autoOpen: true,
+                    modal: false,
+                    resizable: false,
+                    title: 'Save playlist as...',
+                    buttons: {
+                        Ok: function() {
+                            var name = $("#name").val();
+                            if (name.length > 0) {
+                                playlists.lists.push({
+                                    title: name,
+                                    vids: []
+                                });
+                                curlistind = playlists.lists.length - 1;
+                                saveList();
+                                var l = playlists.lists[curlistind];
+                                window.holddefaults = true;
+                                $('#selplaylists').append($('<option>', {
+                                    value: curlistind,
+                                    text: l.title + ' (' + l.vids.length + ')'
+                                })).val(curlistind);
+                                window.holddefaults = false;
+                            }
+                            $(this).dialog('close');
+                        }
+                    }
+                });
+            }
+
+            function deleteList() {
+                if (playlists.lists.length > 1) {
+                    playlists.lists.splice(curlistind, 1);
+                    window.holddefaults = true;
+                    $('#selplaylists option[value="' + curlistind + '"]').remove();
+                    saveList();
+                    curlistind = Math.max(0, curlistind - 1);
+                    //alert(curlistind);
+                    //layoutCurList();
+                    layoutLists();
+
+                    window.holddefaults = false;
+                }
+            }
+
+            function stopVid() {
+                ipcRenderer.send('online-status-changed', 'stop:');
+            }
+
+            function clearSug() {
+                showSuggestionsPanel();
+                if ($('#stage').children(':not(.genere,.spacer,.sugmore)').length == 0 && $('#stage').children('.genere').length > 10) return;
+                // for (var i = 0; i < allvids.length; i++) {
+                //     if (!allvids.removed) {
+                //         allvids.removed = true;
+                //         allvids[i].title += ' removed';
+                //         allvids[i].link += ' removed';
+                //     }
+                // }
+                // //$('#stage, body').css('min-height','5000px');
+                // $('#stage .vidui').not(':in-viewport').css('visibility','hidden');
+                // $('body').jGravity({ // jGravity works best when targeting the body
+                // 	target: '#stage .vidui:in-viewport,#stage .searchheader', // Enter your target critera e.g. 'div, p, span', 'h2' or 'div#specificDiv', or even 'everything' to target everything in the body
+                // 	ignoreClass: 'ignoreMe', // Specify if you would like to use an ignore class, and then specify the class
+                // 	weight: 15, // Enter any number 1-100 ideally (25 is default), you can also use 'heavy' or 'light'
+                // 	depth: 5, // Enter a value between 1-10 ideally (1 is default), this is used to prevent targeting structural divs or other items which may break layout in jGravity
+                // 	drag: false // Decide if users can drag elements which have been effected by jGravity
+                // });
+                // $('#stage').animate({
+                // 	opacity: 0
+                // });
+                //setTimeout(function() {
+                $('#stage').children().remove();
+                $('#stage').css({
+                    opacity: 1
+                })
+                setup(false);
+                //progress(0);
+                //}, 200);
+                //$('#stage').html('');
+            }
+
+            function clearQueue() {
+                //allvids = [];
+                //$('#queue').children().css({marginTop:10});
+                $('#queue').parent().attr('lasttop', $('#queue').parent().css('top')).css('top', 90).css('background-size', '0px');
+                $('#queue').css({
+                    height: '100vh',
+                    overflowY: 'hidden'
+                });
+                $('#queue .vidui').not(':in-viewport').css('visibility', 'hidden');
+                $('body').jGravity({ // jGravity works best when targeting the body
+                    target: '#queue .vidui:in-viewport', // Enter your target critera e.g. 'div, p, span', 'h2' or 'div#specificDiv', or even 'everything' to target everything in the body
+                    ignoreClass: 'ignoreMe', // Specify if you would like to use an ignore class, and then specify the class
+                    weight: 10, // Enter any number 1-100 ideally (25 is default), you can also use 'heavy' or 'light'
+                    depth: 5, // Enter a value between 1-10 ideally (1 is default), this is used to prevent targeting structural divs or other items which may break layout in jGravity
+                    drag: false // Decide if users can drag elements which have been effected by jGravity
+                });
+
+                //$('#queue').parent().animate({opacity:0});
+                setTimeout(function() {
+                    $('#queue').children().remove();
+                    $('#queue').css({
+                        height: 'auto',
+                        overflowY: 'auto'
+                    });
+                    $('#queue').parent().css({
+                        backgroundSize: '100px',
+                        top: $('#queue').parent().attr('lasttop'),
+                        opacity: 1
+                    })
+                }, 1500);
+
+                //$('#queue').html('');
+            }
+            var lastsearchtime = new Date();
+            $(function() {
+                $("#q").focus(function() {
+                    $('#tdlabel').css({
+                        "max-width": "0"
+                    }).stop().fadeOut('fast'); //,display:'none'});
+                    $('#q').css({
+                        "width": $('#stage').width() - 32
+                    });
+                });
+                $("#q").blur(function() {
+                    $('#tdlabel').css({
+                        "max-width": "200"
+                    }).stop().fadeIn('slow'); //,display:'inline'});
+                    $('#q').css({
+                        "width": '50vw'
+                    });
+                });
+                $("#q").focus().autocomplete({
+                        source: function(request, response) {
+                            autocomplete(request.term, response);
+                        },
+                        minLength: 1,
+                        select: function(event, ui) {
+                            if (new Date() - lastsearchtime < 500) return;
+                            lastsearchtime = new Date();
+                            event.preventDefault();
+                            if (ui.item) {
+                                $('#stage').children().remove();
+                                dosearch(ui.item.value);
+                            }
+                            return false;
+
+                        }
+                    })
+                    .keydown(function(event) {
+                        if (event.keyCode == 13) {
+                            if ($("#q").val().length > 0) {
+                                showSuggestionsPanel();
+                                if (new Date() - lastsearchtime < 500) return;
+                                $('.ui-autocomplete').hide();
+                                $(".ui-menu-item").hide();
+                                lastsearchtime = new Date();
+                                $('#stage').children().remove();
+                                dosearch($("#q").val());
+                                event.preventDefault();
+                                return false;
+                            }
+                        }
+                    });;
+            });
+            var infid = 0;
+
+            function removeInfo(infid) {
+                if ($('#infos').css('max-height') == '23px')
+                    $('#inf_' + infid).slideUp(400, function() {
+                        $('#inf_' + infid).remove()
+                    })
+                else
+                    setTimeout("removeInfo('" + infid + "')", 1000);
+            }
+
+            function addInfo(s) {
+                infid++;
+                if ($('#infos').css('max-height') == '23px')
+                    $('<div id="inf_' + infid + '" style="display:none;"">' + s + '</div>').prependTo($('#infos')).slideDown();
+                else
+                    $('<div id="inf_' + infid + '" style="display:none;"">' + s + '</div>').appendTo($('#infos')).slideDown();
+                //setTimeout("$('#inf_" + infid + "').slideUp(400,function(){$('#inf_" + infid + "').remove()})", 30000);
+                setTimeout("removeInfo('" + infid + "')", 30000);
+                if ($('#infos').children().length > 16) $('#infos').children().last().remove(); //.slideUp(400,function(){$(this).remove()});
+            }
+        </script>
+
+
+        <span></span>
+        <span id="currentlyplaying" style="display:none;padding:10px;"></span>
+    </div>
+    <div id="infos" style="width: 200px;position: fixed;right: 12px;z-index: 99;top: 119px;Ntransform: rotate(2deg);border-radius: 5px;"></div>
+    <div class="queuetools metal">
+        <button onclick="clearQueue()" style="float:left;border-radius: 0px 50px 50px 50px;width: 55px;margin: 6px 5px;text-align: right;margin-right: 5px;line-height: 26px;     text-align: center;">Clear</button>
+        <button onclick="stopVid()" style="float:left;    border-radius: 0  0;line-height:26px;    width: 41px;margin: 6px 0;">Stop</button>
+        <button onclick="playNext()" style="float:left;margin-right: 0px;border-radius: 0 0px 0px 9999px;line-height: 3px;width: 25px;transform: rotateZ(45deg);height: 25px;position: absolute;top: 3px;f;font-size: 12px;"></button>
+        <button onclick="shuffleList()" style="float:left;border-radius: 50px 50px;width: 55px;margin: 6px 5px 0 36px;margin-right: 5px;line-height: 26px;text-align: center;">Shuffle</button>
+        <button onclick="buffUp(10)" style="float:left;margin-right: 0px;border-radius: 0 0px 99999px 9999px;line-height: 12px;width: 46px;/* transform: rotateZ(45deg); */height: 32px;height: 36px;text-align: left;px;top: -2px;position: relative;">Buff up</button>
+        <button onclick="if(event.srcElement==this){$('#chkradio').prop('checked',!$('#chkradio').prop('checked')); checkProbe();return false;}" style="float:left;margin-right: 0px;border-radius: 99999px 9999px 0 0px;line-height: 12px;width: 46px;/* transform: rotateZ(45deg); */height: 32px;height: 36px;text-align: right;px;top: -2px;position: absolute;right: 3px;">
+            <input id="chkradio" type="checkbox" onclick="checkProbe()" style="margin-top: -2px;margin-right: -3px;" />Radio</button>
+    </div>
+    <div id="qcontainer" style="    direction: rtl;position: fixed;bottom: 49px;overflow-x: hidden;overflow-y: auto;z-index: 12;box-sizing: border-box;min-height: 0;top: 188px;box-shadow: inset -3px 0px 2px -3px, 3px -4px 2px -3px;">
+        <div id="queue" style="position:relative" class="sortcontainer nmetal"></div>
+    </div>
+    <div id="logo"></div>
+    <div id="scrollspace" style="z-index:13;overflow:auto;position:fixed;left:295px;top:121px;bottom:50px;right:0px;">
+        <div id="stage" style="padding-top:20px;padding-left:10px;padding-bottom: 50px;"></div>
+        <div id="settings" class="hoverpanel" style="min-width: 600px; display: none; background-color: rgba(255, 255, 255, 0.239216);">
+            <h1 style="position:relative;">Listricity Settings<div style="    position: absolute;
+    right: -32px;
+    width: 100px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.14);
+    top: -30px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px -2px;
+    background-image: url(cog.png);
+    background-position: center 19px;
+    background-repeat: no-repeat;
+    background-size: 76px;
+    font-size: 1px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 92px;"> </div></h1>
+            <hr>
+            <div style="line-height: normal;font-size: 20px;text-align: left;padding-bottom: 16px;">Listricity keeps track of your prefernces, the settings screen is where you can view and edit them</div>
+            <h3>Suggestions flags</h3>
+            <div style="line-height: normal;font-size: 20px;text-align: left;padding-bottom: 16px;">Listricity promotes tracks that match the following cryteria</div>
+
+            <!--<h5>Optimal length</h5>-->
+
+            <p>
+                <label for="amount">Optimal track length:</label>
+                <input type="text" id="amount" readonly style="    border: 0;
+    color: #0E0E0E;
+    font-weight: bold;
+    font-size: 18px;
+    background: none;
+    width: 300px;
+ text-align: right;
+    float: right;">
+            </p>
+
+            <div id="slider-range-optimal-length"></div>
+            <br/>
+            <br/>
+
+            <h3>Exclution flags</h3>
+            <table>
+                <tr>
+                    <td style="    vertical-align: top;width: 40%;padding: 10px 40px 10px 0px;">
+                        <div style="line-height: normal;font-size: 20px;text-align: left;padding-bottom: 16px;">Listricity exclude suggestion for tracks containing the following texts:</div>
+                    </td>
+                    <td>
+                        <select multiple="multiple" style="
+    width: 100%;
+    height: 200px;
+    font-size: 18px;
+    font-family: sans-serif;
+" id="selexclude"></select>
+                        <div style="
+    text-align: center;
+    margin-top: 6px;
+    background: none;
+    box-shadow: none;" class="metal">
+                            <button style="margin-right: 4px;" onclick="addExclusion()">Add</button>
+                            <button onclick="removeExclusion()" class="" style="">Remove</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+
+            <h3>Star gradings</h3>
+            <div style="line-height: normal;font-size: 20px;text-align: left;padding-bottom: 16px;">The tracks that you star are used to optimize the suggestions and additions made by Listricity. Here you can remove any wrongly starred tracks
+            </div>
+
+            <div id="starred">
+
+
+            </div>
+
+
+
+
+
+            <div style="height: 80vh;"></div>
+        </div>
+
+
+
+
+
+        <div id="help" class="hoverpanel" style="display: none; min-width: 600px;    background-color: rgba(255, 255, 255, 0.24);">
+
+            <h1 style="position:relative;">Meet Listricity<div style="position: absolute;right: -32px;width: 100px;height: 100px;background-color: rgba(255, 255, 255, 0.14);top: -30px;border-radius: 50%;box-shadow: 0 0 10px -2px;background-image: url(lg1.png);background-position: center;background-repeat: no-repeat;background-size: 86px;"></div></h1>
+            <hr>
+            <div style="line-height: normal;font-size: 20px;text-align: left;padding-bottom: 16px;">Listricity creates great playlists in minutes by making suggestions according to your searches and selections</div>
+            <div style="background-image:url(arrarea.png);width: 100%;height: 332px;background-size: contain;background-repeat: no-repeat;text-align: center;line-height: 53px;font-size: 35px;padding-top: 147px;margin-bottom: 12px;box-sizing: border-box;background-position: center;min-width: 400px;"
+            class="">Suggestions
+                <br>Space
+
+
+            </div>
+            <div style="line-height: normal;font-size: 20px;text-align: left;">In the suggestions space you'll find video suggestions based on your recent actions.</div>
+            <div style="background-image: url(arrleft.png);width: 100%;height: 150px;background-size: 230px;background-repeat: no-repeat;line-height: 25px;font-size: 35px;padding-left: 13vw;box-sizing: border-box;margin-top: 63px;margin-left: -43px;" class="">Playlist
+                <br>
+                <div style="line-height: normal;font-size: 20px;text-align: left;padding-top: 7vw;">You can drag and drop video suggestions into your playlist
+                    <br>
+                    <br>But better yet! you can tell Listricity how much you like (or disslike) a suggestion and let it do all the heavy lifting</div>
+            </div>
+            <div style="line-height: normal;font-size: 20px;text-align: left;margin-top: 124px;padding-bottom: 20px;">Here is how its done
+                <br> When you hover your mouse over a suggestion, a set of tools pops up.
+            </div>
+            <div style="background-image: url(sug.png);width: 100%;height: 136px;background-repeat: no-repeat;line-height: 25px;font-size: 35px;box-sizing: border-box;" class="">
+                <div style="height: 89px;"></div>
+                <div style="line-height: normal;font-size: 20px;text-align: left;padding-top: 50px;">
+                    Use the stars panel to express your feelings regarding a suggestion
+                    <ul>
+
+                        <li><b>5 Star</b>
+                            <br>
+                            <img src="5star.jpg" />
+                            <br/>Adds the video to the playlist and many more vidoes like it</li>
+                        <li><b>4 Star</b>
+                            <br>
+                            <img src="4star.jpg" />
+                            <br/>Pretty good, add it and a few more</li>
+                        <li><b>3 Stars</b>
+                            <br>
+                            <img src="3star.jpg" />
+                            <br/>Well... add just this one</li>
+                        <li><b>2 Star</b>
+                            <br>
+                            <img src="2star.jpg" />
+                            <br/>Kinda bad - remove from suggestions</li>
+                        <li><b>1 Star</b>
+                            <br>
+                            <img src="1star.jpg" />
+                            <br/>Sucks big time - remove this entire suggestion group</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="height: 500px;"></div>
+            <div style="line-height: normal;font-size: 20px;text-align: left;padding-bottom: 20px;">Listricity remembers your choices and tastes.
+                <br>When suggestions are made or when the playlist is automatically buffed up, those preferences are used.</div>
+            <div style="width: 100%; height: 150px; line-height: 25px; font-size: 35px; padding-left: 100px; box-sizing: border-box; margin-left: -43px; position: fixed; bottom: -500px; padding-top: 64px; display: ; background-image: url(&quot;arrbottomleft.png&quot;); background-size: 230px; background-repeat: no-repeat;"
+            class="" id="helptoolsarrow">Playlist tools
+                <br>
+
+            </div>
+
+
+            <div style="line-height: normal;font-size: 20px;text-align: left;margin-top: 100px;height: 400px;" id="helptools">At the bottom of the playlist youll find your playlist tools
+                <br>
+                <br>Clear the list, stop, play, or shuffle and...
+                <div>
+                    <div style="padding-left:280px;right:0;float: right;margin-top: 24px;">
+                        <!--Buff up -->
+                        <br>
+                        <br>
+                        <button onclick="" style="float:left;margin-right: 22px;border-radius: 0 0px 99999px 9999px;line-height: 12px;width: 46px; */height: 32px;height: 36px;text-align: left;px;top: -6px;position: relative;">Buff up</button> This button adds tracks to your playlist based on the current contents of it, and on your previous selections.
+                        <br>
+                        <br>
+                        <!--Radio-->
+                        <br>
+                        <br>
+                        <button style="float:left;margin-right: 22px;border-radius: 99999px 9999px 0 0px;line-height: 12px;width: 46px;height: 36px;text-align: right;px;top: -6px;right: 3px;" onclick="">
+                            <input id="chkradio" type="checkbox" onclick="" style="margin-top: -2px;margin-right: -3px;">Radio</button>Checking the radio button automatically adds more tracks to the playlist when the last tracks are played.</div>
+
+                </div>
+            </div>
+
+
+            <div style="line-height: 43px; font-size: 35px; box-sizing: border-box; margin-left: -43px; position: fixed; top: -500px; padding-top: 76px; right: 16px; height: 300px; text-align: left; width: 301px; padding-right: 111px; background-image: url(&quot;arrtopright.png&quot;); background-size: 230px; background-position: 100% 50%; background-repeat: no-repeat;"
+            class="" id="helpsavearrow">Save your
+                <br>playlists
+                <br>
+
+            </div>
+
+
+            <div style="line-height: normal;font-size: 20px;text-align: left;margin-top: 200px;height: 400px;" id="savetools">
+                <h1>Made a great playlist?</h1>
+                <br/>
+                <br/> On the top right you'll find
+                <br/>everything you need in order to:
+                <br/>
+                <ul>
+                    <li>Save your lists</li>
+                    <li>Load them again</li>
+                    <li>Rename a list</li>
+                    <li>Duplicate a list</li>
+                    <li>and Delete lists</li>
+                </ul>
+            </div>
+
+
+
+
+
+
+
+            <div style="line-height: 40px; font-size: 35px; box-sizing: border-box; margin-left: -43px; position: fixed; top: -500px; padding-top: 38px; left: 356px; height: 300px; text-align: right; width: 404px; padding-right: 111px; background-image: url(&quot;arrupright.png&quot;); background-size: 122px; background-repeat: no-repeat;"
+            class="" id="helpviewportarrow">Resizable
+                <br>&amp;
+                <!--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
+                <br>Detachable
+                <br>Viewport
+                <br>
+
+            </div>
+
+            <div style="line-height: normal;font-size: 20px;text-align: left;height: 400px;padding-left: 300px;" id="helpviewport">The viewport area is resizable and detachable
+                <br>
+                <br>The dock button will place it back on the top left corner
+                <br>
+                <br>Double click for full screen
+                <br>
+                <br> And use the stay-op-top button to keep only the viewport on top of all other windows.
+            </div>
+
+
+
+            <hr>
+            <h1>That's it!</h1> Click the
+            <button onclick="clearSug()" style="top: -7px;position: relative;border-radius: 50px 0 0px 50px;text-align: right;width: 52px;margin-bottom: 2px; */">&#9836;
+                <br>Home</button>
+            button to start browsing geners or start a search on the search box
+            <br> For advanced features and configurations click the
+            <button onclick="settings()" class="btnsettings" style="    float: none;margin-right: auto;">Settings
+                <span style="font-size: 15px;top: 0px;position: absolute;left: 1px;height:16px;">&#9881;</span></button> button.
+
+
+
+
+            <div style="height:300px;"></div>
+
+        </div>
+
+
+
+
+
+    </div>
+    </div>
+    <div class="sugmore " onclick="showSuggestions()"><span class="downarrow"></span>Suggestions</div>
+    <div width="292" height="193" style="position: fixed;top: 0px;margin-bottom:10px;left: 0px;width: 292px;height: 193px;display:none;box-shadow: 0 2px 2px 1px white,-1px 2px 1px 1px #333;">
+    </div>
+    <div id="dialog" title="" style="display:none">
+        <div>
+            <label>Playlist name:</label>
+            <input id="name" name="name" type="text">
+        </div>
+    </div>
+    <script>
+        function settings() {
+            $('#starred').html('');
+            for (var i = 5; i > 0; i--) {
+                $('#starred').append('<h3 style="    border-bottom: 3px groove #999;height: 35px;"><img src="' + i + 'star.jpg" style="    vertical-align: bottom;transform: rotate(-' + (i * 24 / 5 - 12) + 'deg);margin-left: -10px;margin-right: 10px;margin-top: 5px;"> Starred - ' + i + '</h3>');
+                var h = '<div style="max-height:320px;overflow-y:auto;">';
+                for (var i1 = 0; i1 < playlists.settings.starred['star' + i].length; i1++) {
+                    var v = playlists.settings.starred['star' + i][i1];
+                    h += '<div data-link="' + v.link + '" style="min-width:243px;white-space: nowrap;min-height: 96px;border: 1px solid;cursor:default;padding: 0;border-radius: 6px;background-color: #aaa;    display: inline-block;margin-right: 10px;margin-bottom:10px;" valign="top" class="vidui starred"><table style="width: 100%;" cellspacing="0" cellpadding="0"><tbody><tr><td width="10"><img class="vidimgui" src="https://' + v.img.replace('https://', '') + '" style="height: 96px;margin-right: 10px;border-radius: 5px 0 0 5px;border-right: 1px solid;">'
+                    h += '</td><td><a href="#">' + v.title + '</a></td></tr></tbody></table>';
+                    if (v.dur && v.dur != '3:33') h += '<span class="vidtimeui" >' + v.dur + '</span> ';
+                    h += '<span class="del tool" title="" onclick="removeStarred(\'' + v.link + '\',' + i + ');$(this).parent().remove();return false;" style="right: 0;top: 0px;position: absolute;"></span></div>';
+
+
+                }
+                h += '</div>';
+                $('#starred').append(h);
+            }
+            $('#canvas2').addClass('hoverstate');
+            $('#help').fadeOut();
+            $('#stage').fadeOut();
+            $('#settings').fadeIn().css('display', 'inline-block');
+        }
+
+        function removeStarred(h, g) {
+            for (var i = 5; i > 0; i--) {
+                for (var i1 = 0; i1 < playlists.settings.starred['star' + i].length; i1++) {
+                    var v1 = playlists.settings.starred['star' + i][i1];
+                    if (v1.link == h) {
+                        playlists.settings.starred['star' + i].splice(i1, 1);
+                        i1--;
+                    }
+                }
+            }
+            saveList(true, true);
+
+        }
+
+        function help() {
+            $('#starred').html('');
+            $('#canvas2').addClass('hoverstate');
+            $('#settings').hide();
+            $('#stage').hide();
+            $('#help').fadeIn().css('display', 'inline-block')
+        }
+
+        function showSuggestionsPanel() {
+            $('#starred').html('');
+            $('#canvas2').removeClass('hoverstate');
+            $('#settings').fadeOut();
+            $('#help').fadeOut();
+            $('#stage').fadeIn();
+        }
+
+        function saveEQ(eq) {
+            playlists.lists[curlistind].eq = eq;
+            saveList(true, true);
+        }
+
+        function playNext(id) {
+            //debugger;
+            checkProbe();
+            if ($('#queue .vidui').length == 0) return;
+            if (typeof id == 'undefined') id = $('#queue .vidui.playing').next().attr('id');
+            if (typeof id == 'undefined' && $('#queue .vidui.playing').next().is('.insetpoint')) id = $('#queue .vidui.playing').next().next().attr('id');
+            if (typeof id == 'undefined') id = $('#queue .vidui').not('.played, .playing').first().attr('id');
+            if (typeof id == 'undefined') {
+                $('#queue .vidui').removeClass('played').removeClass('playing');
+                id = $('#queue .vidui').not('.played, .playing').first().attr('id');
+            }
+            if (typeof id == 'undefined') return;
+            var v = getVidById(id);
+
+            $('.playing').addClass('played').removeClass('playing');
+            $('#queue #' + id).addClass('playing');
+            $('#queue').parent().animate({
+                scrollTop: $('#' + id).position().top - 56,
+            });
+            $('.insetpoint').insertAfter($('#' + id));
+            //played.push(v);
+            document.getElementById('currentlyplaying').innerText = v.title;
+            //document.title='Tubify - '+v.title.split('').join('')+' . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .';
+            //document.title=''+v.title.split('').join('')+' - Tubify  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .';//... __________________________________________________________________________________________________________________________________';
+            document.title = v.title;
+            $('.titlebar').html(v.title);
+            //$('#queue .vidui').first().css({display:'inline-block'}).slideUp("normal", function() {
+            //	$(this).remove();
+            //});
+            ipcRenderer.send('online-status-changed', 'play:' + v.link.split('?v=')[1]);
+            record('Play Track',v.title);
+        }
+
+        function getVidById(id) {
+            for (var i = 0; i < allvids.length; i++) {
+                if (allvids[i].id == id) return allvids[i];
+            }
+            for (var i = 0; i < allvids.length; i++) {
+                if (allvids[i].sug) {
+                    for (var i1 = 0; i1 < allvids[i].sug; i1++) {
+                        if (allvids[i].sug[i1].id == id) return allvids[i].sug[i1];
+                    }
+                }
+            }
+        }
+
+        function checkProbe() {
+            if (!$('#chkradio').prop('checked')) return;
+            if ($('#queue .vidui.playing').length > 0) {
+                if ($('#queue .vidui.playing').nextAll().length < 4) {
+                    // if (0 && lastUpNext != '') {
+                    //     probe(lastUpNext);
+                    // }
+                    // else 
+                    {
+                        //if (buffupcurdepth == 0) 
+                        addMode = 'radio';
+                        buffUp(4);
+                        addMode = 'distribute';
+                    }
+                }
+            }
+        }
+
+
+        function layoutCurList() {
+            allvids = [];
+            $('#queue').children().remove();
+            if (playlists.lists[curlistind]) {
+                for (var i = 0; i < playlists.lists[curlistind].vids.length; i++) {
+                    var v = playlists.lists[curlistind].vids[i];
+                    v.type = 'up';
+                    v.sug = [];
+                    v.id = getVidId(v.link);
+                    v.ui = false;
+                    allvids.push(v);
+                }
+                ipcRenderer.send('online-status-changed', 'eq:' + (playlists.lists[curlistind].eq || ''));
+
+            }
+            addMode = 'add';
+            ui();
+            //alert('layoutCurList'+allvide);
+            addMode = 'distribute';
+        }
+
+        function layoutLists() {
+
+            $('#selplaylists').children().remove();
+            for (var i = 0; i < playlists.lists.length; i++) {
+                var l = playlists.lists[i];
+                $('#selplaylists').append($('<option>', {
+                    value: i,
+                    text: l.title + ' (' + l.vids.length + ')'
+                }));
+            }
+            //alert(curlistind);
+            $('#selplaylists').val(curlistind);
+            layoutCurList();
+        }
+
+        $('#selplaylists').change(function() {
+            if (!window.holddefaults) {
+                curlistind = $('#selplaylists').val();
+                layoutCurList();
+                saveList(true);
+            }
+        });
+    </script>
+
+    </div>
+    <script>
+        var cs = ['ext', 'happy', 'mid', 'mad', 'fur'];
+        var lastcs = cs[0];
+
+        var fitimer = false;
+        var fitimer1 = false;
+        window.lastrateing = 1;
+        window.lastclickedrating = 1;
+        $(function() {
+            if (document.location.href.indexOf('?os=w') > -1) {
+                $('#qcontainer').addClass('windows');
+                $('body').addClass('windows');
+            }
+
+
+
+
+            $("#slider-range-optimal-length").slider({
+                range: true,
+                min: 0,
+                max: 5400,
+                //values: [ playlists.settings.optimalLength.from, playlists.settings.optimalLength.to ],
+                slide: function(event, ui) {
+                    if (ui.values[1] - ui.values[0] < 240) return false;
+                    $('#amount').val(getFromToTimeText(ui.values[0], ui.values[1]));
+                }
+            });
+
+
+
+
+
+
+            $(document.body).on('mousemove', '#stage .vidui', function() {
+                if (isDragging) {
+                    clearTimeout(fitimer1);
+                    fitimer1 = false;
+                    clearTimeout(fitimer);
+                    fitimer = false;
+                    return;
+                }
+                var p;
+                if ($('#smiley').length == 0) {
+                    $('<div class="smiley-wrap" id="smiley"><div class="product-review-stars"><input type="radio" id="star5" name="rating" value="5" class="visuallyhidden" /><label for="star5" ntitle="Rocks! add this and many like it">★</label><input type="radio" id="star4" name="rating" value="4" class="visuallyhidden" /><label for="star4" ntitle="Pretty good, add it and a few more">★</label><input type="radio" id="star3" name="rating" value="3" class="visuallyhidden" /><label for="star3" ntitle="Well... add just this one">★</label><input type="radio" id="star2" name="rating" value="2" class="visuallyhidden" /><label for="star2" ntitle="Kinda bad - remove from suggestions">★</label><input type="radio" id="star1" name="rating" value="1" class="visuallyhidden" /><label for="star1" ntitle="Sucks big time - remove entire suggestion group">★</label></div><div class="head"><div class="eye pull-left"><div class="ball"></div></div><div class="eye pull-right"><div class="ball"></div></div></div><div class="smile"></div>').appendTo($('body'));
+                    if (window.lastrateing) $('.visuallyhidden').attr('checked', false); //$('#star'+ ((5-window.lastrateing))).attr('checked', 'unchecked');
+                }
+                if ($('#smiley').parent()[0] != this && $('#smiley').parent().parent()[0] != this && $('#smiley').parent().parent().parent()[0] != this) {
+                    if (fitimer) {
+                        clearTimeout(fitimer);
+                        fitimer = false;
+                    }
+                    $('#smiley').hide().delay(100).fadeIn('fast')
+                        .appendTo($(this)); //.find('.ratetools'));
+                    if (typeof window.lastclickedrating != 'undefined') {
+                        if (typeof window.lastclickedrating != 'undefined') $('.visuallyhidden').attr('checked', false); //$('#star'+ ((5-window.lastclickedrating))).attr('checked', 'unchecked');
+                        p = window.lastclickedrating;
+                        this.hoverscore = window.lastclickedrating;
+                    }
+                }
+                if (!$(event.srcElement).is('.tool')) {
+                    if (!fitimer1)
+                        fitimer1 = setTimeout(function() {
+                            fitimer1 = false;
+                            if (fitimer) {
+                                clearTimeout(fitimer);
+                                fitimer = false;
+                            }
+                            //$('#smiley').fadeIn('fast');
+                        }, 300)
+                    if (fitimer) clearTimeout(fitimer);
+                    fitimer = setTimeout(function() {
+                        //$('#smiley').fadeOut('slow');
+                    }, 1500)
+                }
+                else {
+                    clearTimeout(fitimer1);
+                    fitimer1 = false;
+                    clearTimeout(fitimer);
+                    fitimer = false;
+                    //$('#smiley').fadeOut('fast');
+                }
+                if ($(event.srcElement).parent().is('.product-review-stars')) {
+                    clearTimeout(fitimer);
+                    fitimer = false;
+                    p = 4 - ($(event.srcElement).nextAll().length) / 2;
+                    //if(p==0)p=5;
+
+                    $('#smiley').find('.product-review-stars input + label').removeClass('active');
+                }
+                else {
+                    p = window.lastclickedrating;
+                }
+                // else if(false){
+                // 	var ll=event.x-$(this).position().left+$('body').scrollLeft();
+                // 	p=Math.max(0,Math.min(cs.length-1,Math.floor((ll-18)/($(this).width())*5)));
+                // 	p=4-p;
+                // 	$('#smiley').find('.product-review-stars input + label').removeClass('active');
+                // 	//for(var pn=0;pn<=p;pn++)
+                // 	$('#smiley').find('.product-review-stars input + label:nth-of-type(n+'+(p+1)+')').addClass('active');
+                // }
+                //
+                if (typeof p != 'undefined') {
+                    this.hoverscore = p;
+                    window.lastrateing = p;
+
+                    //console.log(p+' '+ll+' '+$(this).width())
+                    //ll-=58;
+                    //ll=Math.max(-31,ll);
+                    //ll=Math.min($(this).width()-76,ll);
+                    //console.log(p);
+                    $('#smiley').removeClass(lastcs)
+                        .addClass(cs[Math.round(p)])
+                        //.css({left:Math.min($(this).offset().left+$(this).width()-96,Math.max(event.clientX-58,$(this).offset().left))-6,top:$(this).offset().top-11})
+                        .css({
+                            right: -50,
+                            top: -55
+                                //, 'box-shadow': 'black 0px 0px 10px 0px, rgb(72, 72, 72) 0px 0px 22px 6px inset'
+                                ,
+                            'border-color': 'rgb(75, 75, 75)'
+                                //,'background-color': 'rgb(183, 183, 183)'
+                        })
+                    lastcs = cs[Math.round(p)];
+                }
+            })
+            $('#scrollspace').scroll(setHeaders);
+            $(window).unload(function() {
+                try {
+                    //nightmare.end();
+                }
+                catch (e) {}
+            });
+        });
+
+
+        function getFromToTimeText(secs1, secs2) {
+            return 'between ' + getTimeText(secs1) + ' and ' + getTimeText(secs2);
+        }
+
+        function getTimeText(secs) {
+            var hours = Math.floor(secs / 60 / 60);
+            var minutes = Math.floor(secs / 60 - hours * 60);
+            var seconds = secs - (hours * 60 * 60 + minutes * 60);
+
+            var r = '';
+            if (hours > 0) r += hours + ':';
+            if (minutes.toString().length == 1) minutes = '0' + minutes;
+            if (seconds.toString().length == 1) seconds = '0' + seconds;
+            r += minutes + ':' + seconds;
+            return r;
+        }
+
+
+        var families = {
+            "pop": 0,
+            "hip hop": 1,
+            "disco": 2,
+            "electro house": 3,
+            "rhythm and blues": 4,
+            "latin": 5,
+            "country": 6,
+            "metal": 7,
+            "rock": 8,
+            "folk": 9,
+            "blues": 10,
+            "reggae": 11,
+            "jazz": 12,
+            "classical": 13,
+            "world": 14
+        }
+        var familiesks = Object.keys(families);
+
+        function setup(isinit) {
+            if (isinit) addMode = 'init';
+            for (var i = 0; i < familiesks.length; i++) {
+                var f = familiesks[i];
+                if (i == -2) { //} || i==2){
+                    if (isinit) dosearch(f + ' music', 'genere');
+                }
+                else {
+                    $('<div class="searchheader slidein genere" style="   white-space: nowrap;cursor:pointer;overflow:hidden;display: inline-block;margin: 20px 20px 0px 20px;cursor:pointer;    display: inline-block;font-size: 30px;padding: 10px 15px 10px 30px;' + (i % 3 == -1 ? 'float:right;' : i % 6 < 0 ? 'margin-left:100px;' : '') + ' " onclick="dosearch(\'' + f + ' music\',\'genere\');$(\'.genere\').remove();"><span class="sprite" style="background-position:-' + ((i + 3) * 210) + 'px 5px;width:100px;height:100px; margin-right: 15px;"></span>' + f.capitalize() + '<div class="dosearch searchtool" ></div></div>' + (familiesks.length == i + 1 ? '<div class="spacer"></div>' : '')).appendTo('#stage');
+                }
+            }
+            if (isinit) setTimeout(function() {
+                addMode = 'distribute';
+            }, 6000);
+        }
+        String.prototype.capitalize = function() {
+            return this.charAt(0).toUpperCase() + this.slice(1);
+        }
+        setup(true);
+
+
+        function showSocial() {
+            $('.overlay.launchpad.opaque').fadeIn(10).addClass('active');
+        }
+    </script>
+
+
+
+
+
+
+
+    <div id="sharebutton" onclick="showSocial()">Share the Love</div>
+    <div class="arthref arthrefSocialShare">
+        <div class="overlay launchpad opaque" onclick="$(this).removeClass('active').css('display','none')" style="">
+            <div class="icon-container">
+                <div class="centered">
+                    <ul class="active">
+                        <li><a href="#" onclick="opener('http://www.facebook.com/sharer.php?u=http://listricity.com#&amp;t=Look%20what%20I%20found')" class="aFacebook"><span></span></a><span>Facebook</span></li>
+                        <li><a href="#" onclick="opener('http://twitter.com/home?status=Look%20what%20I%20found%20http://listricity.com#')" class="aTwitter"><span></span></a><span>Twitter</span></li>
+                        <li><a href="#" onclick="opener('https://plus.google.com/share?url=http://listricity.com#')" class="aGooglePlus"><span></span></a><span>Google+</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+</body>
+
+</html>
