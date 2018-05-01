@@ -1,5 +1,3 @@
-[plat]: # Listricity
-
 ![N|Solid](http://listricity.com/listricity.png)
 
 Listricity is a free online playlist maker and music player. Create music playlists by grading tracks suggestions.
