@@ -1,8 +1,8 @@
-# Listricity
+[plat]: # Listricity
 
 ![N|Solid](http://listricity.com/listricity.png)
 
-listricity is a free online playlist maker and music player. Create music playlists by grading tracks suggestions.
+Listricity is a free online playlist maker and music player. Create music playlists by grading tracks suggestions.
 Check out the [Live version](http://listricity.com)
 
 ### Tech
